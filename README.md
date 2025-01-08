@@ -1,3 +1,9 @@
+[![black](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/formatting.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/formatting.yml)
+[![pylint](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pylint.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pylint.yml)
+[![mypy](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/type-check.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/type-check.yml)
+[![pytest](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest.yml)
+[![pytest-cov](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest-cov.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest-cov.yml)
+
 # A Computer Vision/Robotics Case Study for "Circu Li-ion"
 
 ## Case Study:

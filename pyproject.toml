@@ -1,0 +1,40 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+python_files = ["test_*.py"]
+
+[tool.pylint]
+init-hook = "import os, sys; sys.path.append(os.getcwd())"
+max-line-length = 100
+
+[tool.pylint.messages_control]
+disable = ["duplicate-code"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+exclude = '^ignore/' # a local folder I want to skip type checking
+
+[tool.coverage.run]
+omit = ["*/tests/*"]
