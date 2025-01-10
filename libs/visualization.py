@@ -1,0 +1,155 @@
+"""
+This module provides a Visualizer class for visualizing images and point clouds
+with annotations from a dataset. The Visualizer supports drawing annotations as
+bounding boxes or mask contours on images, and it can display the annotated
+images using OpenCV.
+"""
+
+# pylint: disable=no-member
+
+import functools
+from dataclasses import dataclass
+from types import SimpleNamespace
+from typing import Callable, Tuple
+
+import cv2
+import datumaro
+import numpy as np
+import open3d as o3d
+from datumaro.components.annotation import Annotation
+
+ANNOTATION_DRAW_MODE = ["bbox", "mask_contour"]
+
+
+@functools.lru_cache(maxsize=100)
+def _colors(idx: int) -> Tuple[int, int, int]:
+    """Return a list of colors for drawing annotations."""
+    colors = {
+        "Blue": (255, 0, 0),  # Blue
+        "Green": (0, 255, 0),  # Green
+        "Red": (0, 0, 255),  # Red
+        "Cyan": (255, 255, 0),  # Cyan
+        "Magenta": (255, 0, 255),  # Magenta
+        "Yellow": (0, 255, 255),  # Yellow
+        "Black": (0, 0, 0),  # Black
+        "White": (255, 255, 255),  # White
+    }
+    return list(colors.values())[idx % len(colors)]
+
+
+def _text_font_args() -> dict:
+    """Return the configuration for the visualizer."""
+    return {"fontFace": cv2.FONT_HERSHEY_SIMPLEX, "fontScale": 0.5, "thickness": 1}
+
+
+@dataclass
+class VisualizerConfig:  # pylint: disable=missing-class-docstring
+    image_resize_factor: float
+    draw_annotation_as: str
+    visualize_2d: bool
+    visualize_3d: bool
+
+
+class Visualizer:  # pylint: disable=too-few-public-methods
+    """Visualize images and point clouds from the dataset."""
+
+    def __init__(self, config: VisualizerConfig, label_name_mapper: Callable):
+        self._config = config
+        self._label_name_mapper = label_name_mapper
+
+    def _write_annotation_label(
+        self,
+        annotated_image: np.ndarray,
+        label_name: str,
+        label_coordinates: SimpleNamespace,
+        color: Tuple[int, int, int],
+    ):
+        """Write the label name on the image next to annotation."""
+        org = (label_coordinates.x, label_coordinates.y - 10)
+        cv2.putText(img=annotated_image, text=label_name, org=org, color=color, **_text_font_args())
+
+    def _draw_annotation_as_bbox(
+        self,
+        annotated_image: np.ndarray,
+        annotation: Annotation,
+        label_name: str,
+        color: Tuple[int, int, int],
+    ):
+        """Draws an annotation on the image as a bounding box."""
+        x, y, w, h = annotation.get_bbox()
+        x, y, w, h = (
+            int(x * self._config.image_resize_factor),
+            int(y * self._config.image_resize_factor),
+            int(w * self._config.image_resize_factor),
+            int(h * self._config.image_resize_factor),
+        )
+        cv2.rectangle(annotated_image, (x, y), (x + w, y + h), color, 2)
+        label_coordinates = SimpleNamespace(x=int(x), y=int(y))
+        self._write_annotation_label(annotated_image, label_name, label_coordinates, color)
+
+    def _draw_annotation_as_mask_contour(
+        self,
+        annotated_image: np.ndarray,
+        annotation: Annotation,
+        label_name: str,
+        color: Tuple[int, int, int],
+    ):
+        """Draws a mask annotation on the image."""
+        mask = annotation.image  # Binary mask as a NumPy array
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contour in contours:
+            contour = (contour * self._config.image_resize_factor).astype(np.int32)
+            cv2.drawContours(annotated_image, [contour], -1, color, thickness=2)
+        if contours:
+            x, y = contours[0][0][0]
+            label_coordinates = SimpleNamespace(x=int(x), y=int(y))
+            self._write_annotation_label(annotated_image, label_name, label_coordinates, color)
+
+    def _draw_annotation(self, **kwargs):
+        """Draw an annotation on the image."""
+        draw_methods = {
+            "bbox": self._draw_annotation_as_bbox,
+            "mask_contour": self._draw_annotation_as_mask_contour,
+        }
+        draw_methods[self._config.draw_annotation_as](**kwargs)
+
+    def _visualize_3d(self, pointcloud: o3d.geometry.PointCloud):
+        """Visualize a point cloud."""
+        o3d.visualization.draw_geometries([pointcloud], window_name="Point Cloud")
+
+    def _visualize_2d(
+        self,
+        image: np.ndarray,
+        annotations: datumaro.components.annotation.Annotations,
+    ):
+        """Visualize a frame with its image and annotations."""
+        annotated_image = image.copy()
+        if self._config.image_resize_factor != 1.0:
+            annotated_image = cv2.resize(
+                annotated_image,
+                (0, 0),
+                fx=self._config.image_resize_factor,
+                fy=self._config.image_resize_factor,
+            )
+        for annotation in annotations:
+            self._draw_annotation(
+                annotated_image=annotated_image,
+                annotation=annotation,
+                label_name=self._label_name_mapper(annotation.label),
+                color=_colors(annotation.label),
+            )
+        cv2.imshow("Annotated Image", annotated_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def visualize_frame(
+        self,
+        image: np.ndarray,
+        pointcloud: o3d.geometry.PointCloud,
+        annotations: datumaro.components.annotation.Annotations,
+    ):
+        """Visualize a frame with its image, point cloud, and annotations."""
+        if self._config.visualize_3d:
+            self._visualize_3d(pointcloud)
+        if self._config.visualize_2d:
+            self._visualize_2d(image, annotations)

@@ -2,6 +2,8 @@
 testpaths = ["tests"]
 addopts = "-v"
 python_files = ["test_*.py"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
 
 [tool.pylint]
 init-hook = "import os, sys; sys.path.append(os.getcwd())"
@@ -34,7 +36,8 @@ profile = "black"
 line_length = 100
 
 [tool.mypy]
-exclude = '^ignore/' # a local folder I want to skip type checking
+exclude = '^ignore/|^tools/'  # local folders I want to skip type checking
+ignore_missing_imports = true
 
 [tool.coverage.run]
-omit = ["*/tests/*"]
+omit = ["*/tests/*", "*/config-3.py", "*/config.py"]

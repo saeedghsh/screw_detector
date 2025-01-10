@@ -1,0 +1,128 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring
+import os
+import sys
+from unittest import mock
+
+import pytest
+
+from entry_points.dataset_visualizer import _parse_args, main
+
+
+@pytest.fixture
+def dataset_manager_fixture():
+    with mock.patch("entry_points.dataset_visualizer.DatasetManager") as mock_manager:
+        yield mock_manager
+
+
+@pytest.fixture
+def visualizer_fixture():
+    with mock.patch("entry_points.dataset_visualizer.Visualizer") as mock_visualizer:
+        yield mock_visualizer
+
+
+def test_parse_args_defaults():
+    args = _parse_args([])
+    assert args.battery_pack == 2
+    assert args.image_resize_factor == 0.5
+    assert args.draw_annotation_as == "mask_contour"
+    assert args.visualize_2d is True
+    assert args.visualize_3d is True
+
+
+def test_parse_args_custom():
+    args = _parse_args(
+        [
+            "--battery-pack",
+            "1",
+            "--image-resize-factor",
+            "0.8",
+            "--draw-annotation-as",
+            "bbox",
+            "--visualize-2d",
+            "False",
+            "--visualize-3d",
+            "False",
+        ]
+    )
+    assert args.battery_pack == 1
+    assert args.image_resize_factor == 0.8
+    assert args.draw_annotation_as == "bbox"
+    assert args.visualize_2d is False
+    assert args.visualize_3d is False
+
+
+def test_main_executes_visualization(request: pytest.FixtureRequest):
+    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+    visualizer = request.getfixturevalue("visualizer_fixture")
+
+    dataset_manager_instance = dataset_manager.return_value
+    dataset_manager_instance.frame_ids.keys.return_value = [1]
+    dataset_manager_instance.image.return_value = "image"
+    dataset_manager_instance.pointcloud.return_value = "pointcloud"
+    dataset_manager_instance.frame_annotations.return_value = "annotations"
+
+    with mock.patch.object(sys, "argv", ["dataset_visualizer"]):
+        result = main(sys.argv[1:])
+        assert result == os.EX_OK
+
+    dataset_manager.assert_called_once_with(2)
+    visualizer.assert_called_once()
+    visualizer_instance = visualizer.return_value
+    visualizer_instance.visualize_frame.assert_called_once_with(
+        "image", "pointcloud", "annotations"
+    )
+
+
+def test_main_with_custom_args(request: pytest.FixtureRequest):
+    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+    visualizer = request.getfixturevalue("visualizer_fixture")
+
+    dataset_manager_instance = dataset_manager.return_value
+    dataset_manager_instance.frame_ids.keys.return_value = [1]
+    dataset_manager_instance.image.return_value = "image"
+    dataset_manager_instance.pointcloud.return_value = "pointcloud"
+    dataset_manager_instance.frame_annotations.return_value = "annotations"
+
+    with mock.patch.object(
+        sys,
+        "argv",
+        [
+            "dataset_visualizer",
+            "--battery-pack",
+            "1",
+            "--image-resize-factor",
+            "0.8",
+            "--draw-annotation-as",
+            "bbox",
+            "--visualize-2d",
+            "False",
+            "--visualize-3d",
+            "False",
+        ],
+    ):
+        result = main(sys.argv[1:])
+        assert result == os.EX_OK
+
+    dataset_manager.assert_called_once_with(1)
+    visualizer.assert_called_once()
+    visualizer_instance = visualizer.return_value
+    visualizer_instance.visualize_frame.assert_called_once_with(
+        "image", "pointcloud", "annotations"
+    )
+
+
+def test_main_handles_empty_frame_ids(request: pytest.FixtureRequest):
+    """Test the edge case where frame_ids is empty to ensure 100% coverage."""
+    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+    visualizer = request.getfixturevalue("visualizer_fixture")
+
+    dataset_manager_instance = dataset_manager.return_value
+    dataset_manager_instance.frame_ids.keys.return_value = []  # Simulate empty frame_ids
+
+    with mock.patch.object(sys, "argv", ["dataset_visualizer"]):
+        result = main(sys.argv[1:])
+        assert result == os.EX_OK
+
+    dataset_manager.assert_called_once_with(2)
+    visualizer_instance = visualizer.return_value
+    visualizer_instance.visualize_frame.assert_not_called()  # Ensure no frames were visualized

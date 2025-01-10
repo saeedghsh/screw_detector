@@ -6,7 +6,7 @@ import os
 import pytest
 from pytest import FixtureRequest
 
-from libs.logging_utils.logger import setup_logging
+from libs.logger import setup_logging
 
 
 @pytest.fixture

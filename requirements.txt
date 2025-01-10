@@ -4,3 +4,6 @@ pytest-cov
 black
 isort
 mypy
+datumaro
+opencv-python-headless
+open3d
