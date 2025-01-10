@@ -41,17 +41,6 @@ expected to deliver:
     trade-offs you’ve made (<1 page) and a visualization of the results on the
     sample dataset. 
 
-## Tests, coverage, linter, formatter, static type check, ...
-```bash
-$ black . --check
-$ isort . --check-only
-$ mypy . --explicit-package-bases
-$ pylint $(git ls-files '*.py')
-$ xvfb-run --auto-servernum pytest
-$ xvfb-run --auto-servernum pytest --cov=.
-$ xvfb-run --auto-servernum pytest --cov=. --cov-report html; firefox htmlcov/index.html
-```
-
 # Note
 Portions of this code/project were developed with the assistance of ChatGPT (a
 product of OpenAI) and Copilot (A product of Microsoft).
