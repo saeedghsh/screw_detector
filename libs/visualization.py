@@ -19,8 +19,6 @@ from datumaro.components.annotation import Annotation
 
 from libs.dataset_management import Frame
 
-ANNOTATION_DRAW_MODE = ["bbox", "mask_contour"]
-
 
 @functools.lru_cache(maxsize=100)
 def _colors(idx: int) -> Tuple[int, int, int]:
@@ -80,32 +78,6 @@ class Visualizer:  # pylint: disable=too-few-public-methods
         label_coordinates = SimpleNamespace(x=int(x), y=int(y))
         self._write_annotation_label(annotated_image, label_name, label_coordinates, color)
 
-    def _draw_annotation_as_mask_contour(
-        self,
-        annotated_image: np.ndarray,
-        annotation: Annotation,
-        label_name: str,
-        color: Tuple[int, int, int],
-    ):
-        """Draws a mask annotation on the image."""
-        mask = annotation.image  # Binary mask as a NumPy array
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        for contour in contours:
-            contour = (contour * self._config.image_resize_factor).astype(np.int32)
-            cv2.drawContours(annotated_image, [contour], -1, color, thickness=2)
-        if contours:
-            x, y = contours[0][0][0]
-            label_coordinates = SimpleNamespace(x=int(x), y=int(y))
-            self._write_annotation_label(annotated_image, label_name, label_coordinates, color)
-
-    def _draw_annotation(self, **kwargs):
-        """Draw an annotation on the image."""
-        draw_methods = {
-            "bbox": self._draw_annotation_as_bbox,
-            "mask_contour": self._draw_annotation_as_mask_contour,
-        }
-        draw_methods[self._config.draw_annotation_as](**kwargs)
-
     def _visualize_3d(self, frame: Frame):
         """Visualize a point cloud."""
         if self._config.show_output:
@@ -122,7 +94,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
                 fy=self._config.image_resize_factor,
             )
         for annotation in frame.annotations:
-            self._draw_annotation(
+            self._draw_annotation_as_bbox(
                 annotated_image=annotated_image,
                 annotation=annotation,
                 label_name=self._label_name_mapper(annotation.label),

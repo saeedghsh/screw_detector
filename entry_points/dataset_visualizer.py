@@ -10,7 +10,7 @@ from typing import Sequence
 
 from libs.dataset_management import BATTERY_PACKS, DatasetManager
 from libs.logger import setup_logging
-from libs.visualization import ANNOTATION_DRAW_MODE, Visualizer
+from libs.visualization import Visualizer
 
 logger = setup_logging(name_appendix="data-inspector", level=logging.DEBUG)
 
@@ -19,7 +19,6 @@ def _config() -> SimpleNamespace:
     config = SimpleNamespace(
         battery_pack=2,
         image_resize_factor=0.5,
-        draw_annotation_as="bbox",
         visualize_2d=True,
         visualize_3d=False,
         show_output=False,
@@ -28,8 +27,6 @@ def _config() -> SimpleNamespace:
     )
     if config.battery_pack not in BATTERY_PACKS:  # pragma: no cover
         raise ValueError(f"Battery pack must be one of {BATTERY_PACKS}")
-    if config.draw_annotation_as not in ANNOTATION_DRAW_MODE:  # pragma: no cover
-        raise ValueError(f"Draw annotation as must be one of {ANNOTATION_DRAW_MODE}")
     return config
 
 
@@ -43,7 +40,6 @@ def main(_: Sequence[str]) -> int:
     for frame_id in dataset_manager.frame_ids.keys():
         frame = dataset_manager.frame(frame_id)
         visualizer.visualize_frame(frame)
-        break
 
     return os.EX_OK
 

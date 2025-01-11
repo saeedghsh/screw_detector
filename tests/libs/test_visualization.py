@@ -15,7 +15,6 @@ from libs.visualization import Visualizer
 def visualizer_fixture():
     config = SimpleNamespace(
         image_resize_factor=0.5,
-        draw_annotation_as="bbox",
         visualize_2d=True,
         visualize_3d=False,
         show_output=True,
@@ -24,32 +23,6 @@ def visualizer_fixture():
     )
     label_name_mapper = MagicMock(return_value="mock_label")
     return Visualizer(config, label_name_mapper)
-
-
-def test_visualize_frame_with_mask_contour():
-    config = SimpleNamespace(
-        image_resize_factor=0.5,
-        draw_annotation_as="mask_contour",
-        visualize_2d=True,
-        visualize_3d=False,
-        show_output=True,
-        save_output=True,
-        output_dir="output",
-    )
-    label_name_mapper = MagicMock(return_value="mock_label")
-    visualizer = Visualizer(config, label_name_mapper)
-    image = np.zeros((200, 200, 3), dtype=np.uint8)
-    pointcloud = o3d.geometry.PointCloud()
-    mask = np.zeros((200, 200), dtype=np.uint8)
-    mask[50:150, 50:150] = 255
-    annotation = MagicMock(label=0)
-    annotation.type = AnnotationType.mask
-    annotation.image = mask
-    annotation.get_bbox.return_value = (50, 50, 100, 100)
-    annotations = [annotation]
-    frame = Frame("x/y/z", image, pointcloud, annotations)
-    with patch("cv2.imshow"), patch("cv2.waitKey"), patch("cv2.destroyAllWindows"):
-        visualizer.visualize_frame(frame)
 
 
 def test_visualizer_resizes_image(request: pytest.FixtureRequest):
@@ -66,7 +39,6 @@ def test_visualizer_resizes_image(request: pytest.FixtureRequest):
 def test_visualize_frame_no_visualization():
     config = SimpleNamespace(
         image_resize_factor=1.0,
-        draw_annotation_as="bbox",
         visualize_2d=False,
         visualize_3d=False,
     )
@@ -82,7 +54,6 @@ def test_visualize_frame_no_visualization():
 def test_visualize_frame_with_bbox():
     config = SimpleNamespace(
         image_resize_factor=1.0,
-        draw_annotation_as="bbox",
         visualize_2d=True,
         visualize_3d=False,
         show_output=True,
@@ -105,7 +76,6 @@ def test_visualize_frame_with_bbox():
 def test_visualize_3d():
     config = SimpleNamespace(
         image_resize_factor=1.0,
-        draw_annotation_as="bbox",
         visualize_2d=False,
         visualize_3d=True,
         show_output=True,
