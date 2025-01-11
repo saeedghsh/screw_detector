@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from entry_points.dataset_visualizer import _parse_args, main
+from entry_points.dataset_visualizer import main
 
 
 @pytest.fixture
@@ -20,37 +20,6 @@ def visualizer_fixture():
         yield mock_visualizer
 
 
-def test_parse_args_defaults():
-    args = _parse_args([])
-    assert args.battery_pack == 2
-    assert args.image_resize_factor == 0.5
-    assert args.draw_annotation_as == "mask_contour"
-    assert args.visualize_2d is True
-    assert args.visualize_3d is True
-
-
-def test_parse_args_custom():
-    args = _parse_args(
-        [
-            "--battery-pack",
-            "1",
-            "--image-resize-factor",
-            "0.8",
-            "--draw-annotation-as",
-            "bbox",
-            "--visualize-2d",
-            "False",
-            "--visualize-3d",
-            "False",
-        ]
-    )
-    assert args.battery_pack == 1
-    assert args.image_resize_factor == 0.8
-    assert args.draw_annotation_as == "bbox"
-    assert args.visualize_2d is False
-    assert args.visualize_3d is False
-
-
 def test_main_executes_visualization(request: pytest.FixtureRequest):
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     visualizer = request.getfixturevalue("visualizer_fixture")
@@ -60,6 +29,7 @@ def test_main_executes_visualization(request: pytest.FixtureRequest):
     dataset_manager_instance.image.return_value = "image"
     dataset_manager_instance.pointcloud.return_value = "pointcloud"
     dataset_manager_instance.frame_annotations.return_value = "annotations"
+    dataset_manager_instance.frame.return_value = "frame"
 
     with mock.patch.object(sys, "argv", ["dataset_visualizer"]):
         result = main(sys.argv[1:])
@@ -68,47 +38,7 @@ def test_main_executes_visualization(request: pytest.FixtureRequest):
     dataset_manager.assert_called_once_with(2)
     visualizer.assert_called_once()
     visualizer_instance = visualizer.return_value
-    visualizer_instance.visualize_frame.assert_called_once_with(
-        "image", "pointcloud", "annotations"
-    )
-
-
-def test_main_with_custom_args(request: pytest.FixtureRequest):
-    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
-    visualizer = request.getfixturevalue("visualizer_fixture")
-
-    dataset_manager_instance = dataset_manager.return_value
-    dataset_manager_instance.frame_ids.keys.return_value = [1]
-    dataset_manager_instance.image.return_value = "image"
-    dataset_manager_instance.pointcloud.return_value = "pointcloud"
-    dataset_manager_instance.frame_annotations.return_value = "annotations"
-
-    with mock.patch.object(
-        sys,
-        "argv",
-        [
-            "dataset_visualizer",
-            "--battery-pack",
-            "1",
-            "--image-resize-factor",
-            "0.8",
-            "--draw-annotation-as",
-            "bbox",
-            "--visualize-2d",
-            "False",
-            "--visualize-3d",
-            "False",
-        ],
-    ):
-        result = main(sys.argv[1:])
-        assert result == os.EX_OK
-
-    dataset_manager.assert_called_once_with(1)
-    visualizer.assert_called_once()
-    visualizer_instance = visualizer.return_value
-    visualizer_instance.visualize_frame.assert_called_once_with(
-        "image", "pointcloud", "annotations"
-    )
+    visualizer_instance.visualize_frame.assert_called_once_with("frame")
 
 
 def test_main_handles_empty_frame_ids(request: pytest.FixtureRequest):

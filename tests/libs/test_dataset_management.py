@@ -7,7 +7,7 @@ import open3d as o3d
 import pytest
 from pytest import FixtureRequest
 
-from libs.dataset_management import DATASET_PATH, DatasetManager
+from libs.dataset_management import DATASET_PATH, DatasetManager, Frame
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def dataset_manager_fixture():
         mock_import.return_value = mock_dataset
         mock_dataset.categories.return_value.get.return_value.items = [MagicMock(name="MockLabel")]
         mock_dataset.categories.return_value.get.return_value.items[0].name = "mock_label"
-        mock_dataset.__iter__.return_value = iter([MagicMock(id="mock_frame_1")])
+        mock_dataset.__iter__.return_value = iter([MagicMock(id="mock/frame/1")])
         mock_dataset.__getitem__.side_effect = lambda idx: MagicMock(
             annotations=[MagicMock(spec=datumaro.components.annotation.Annotation)]
         )
@@ -87,6 +87,23 @@ def test_frame_annotations(request: FixtureRequest):
     annotations = dataset_manager.frame_annotations(frame_id)
     assert isinstance(annotations, list)
     assert all(isinstance(ann, datumaro.components.annotation.Annotation) for ann in annotations)
+
+
+def test_frame(request: FixtureRequest):
+    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+    frame_id = next(iter(dataset_manager.frame_ids))  # Get any valid frame_id
+    with patch("os.path.isfile", return_value=True):
+        with patch("cv2.imread", return_value=np.zeros((100, 100, 3))):
+            with patch("open3d.io.read_point_cloud", return_value=o3d.geometry.PointCloud()):
+                frame = dataset_manager.frame(frame_id)
+    assert isinstance(frame, Frame)
+    assert isinstance(frame.id, str)
+    assert isinstance(frame.image, np.ndarray)
+    assert isinstance(frame.pointcloud, o3d.geometry.PointCloud)
+    assert isinstance(frame.annotations, list)
+    assert all(
+        isinstance(ann, datumaro.components.annotation.Annotation) for ann in frame.annotations
+    )
 
 
 def test_invalid_battery_pack():

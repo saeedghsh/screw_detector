@@ -7,16 +7,17 @@ images using OpenCV.
 
 # pylint: disable=no-member
 
+
 import functools
-from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Callable, Tuple
 
 import cv2
-import datumaro
 import numpy as np
 import open3d as o3d
 from datumaro.components.annotation import Annotation
+
+from libs.dataset_management import Frame
 
 ANNOTATION_DRAW_MODE = ["bbox", "mask_contour"]
 
@@ -42,18 +43,10 @@ def _text_font_args() -> dict:
     return {"fontFace": cv2.FONT_HERSHEY_SIMPLEX, "fontScale": 0.5, "thickness": 1}
 
 
-@dataclass
-class VisualizerConfig:  # pylint: disable=missing-class-docstring
-    image_resize_factor: float
-    draw_annotation_as: str
-    visualize_2d: bool
-    visualize_3d: bool
-
-
 class Visualizer:  # pylint: disable=too-few-public-methods
     """Visualize images and point clouds from the dataset."""
 
-    def __init__(self, config: VisualizerConfig, label_name_mapper: Callable):
+    def __init__(self, config: SimpleNamespace, label_name_mapper: Callable):
         self._config = config
         self._label_name_mapper = label_name_mapper
 
@@ -113,17 +106,14 @@ class Visualizer:  # pylint: disable=too-few-public-methods
         }
         draw_methods[self._config.draw_annotation_as](**kwargs)
 
-    def _visualize_3d(self, pointcloud: o3d.geometry.PointCloud):
+    def _visualize_3d(self, frame: Frame):
         """Visualize a point cloud."""
-        o3d.visualization.draw_geometries([pointcloud], window_name="Point Cloud")
+        if self._config.show_output:
+            o3d.visualization.draw_geometries([frame.pointcloud], window_name="Point Cloud")
 
-    def _visualize_2d(
-        self,
-        image: np.ndarray,
-        annotations: datumaro.components.annotation.Annotations,
-    ):
+    def _visualize_2d(self, frame: Frame):
         """Visualize a frame with its image and annotations."""
-        annotated_image = image.copy()
+        annotated_image = frame.image.copy()
         if self._config.image_resize_factor != 1.0:
             annotated_image = cv2.resize(
                 annotated_image,
@@ -131,25 +121,25 @@ class Visualizer:  # pylint: disable=too-few-public-methods
                 fx=self._config.image_resize_factor,
                 fy=self._config.image_resize_factor,
             )
-        for annotation in annotations:
+        for annotation in frame.annotations:
             self._draw_annotation(
                 annotated_image=annotated_image,
                 annotation=annotation,
                 label_name=self._label_name_mapper(annotation.label),
                 color=_colors(annotation.label),
             )
-        cv2.imshow("Annotated Image", annotated_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
-    def visualize_frame(
-        self,
-        image: np.ndarray,
-        pointcloud: o3d.geometry.PointCloud,
-        annotations: datumaro.components.annotation.Annotations,
-    ):
+        if self._config.show_output:
+            cv2.imshow("Annotated Image", annotated_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        if self._config.save_output:
+            output_path = f"{self._config.output_dir}/{frame.output_path_2d()}"
+            cv2.imwrite(output_path, annotated_image)
+
+    def visualize_frame(self, frame: Frame):
         """Visualize a frame with its image, point cloud, and annotations."""
         if self._config.visualize_3d:
-            self._visualize_3d(pointcloud)
+            self._visualize_3d(frame)
         if self._config.visualize_2d:
-            self._visualize_2d(image, annotations)
+            self._visualize_2d(frame)
