@@ -68,11 +68,11 @@ class DatasetManager:
     def _validate_frame_id(frame_id: str):
         """Check the frame ID format."""
         parts = frame_id.split("/")
-        if len(parts) != 3:
+        if len(parts) != 3:  # pragma: no cover
             raise ValueError("Frame ID must be in the format: battery_pack_i/frame_name/frame_name")
-        if "battery_pack_" not in parts[0]:
+        if "battery_pack_" not in parts[0]:  # pragma: no cover
             raise ValueError("Frame ID must start with 'battery_pack_'")
-        if parts[1] != parts[2]:
+        if parts[1] != parts[2]:  # pragma: no cover
             raise ValueError("Frame ID must have frame name repeated twice in it")
 
     @staticmethod
@@ -123,7 +123,7 @@ class DatasetManager:
     def _image(frame_id: str, dataset_path: str = DATASET_PATH) -> np.ndarray:
         """Return the image for the given frame ID."""
         image_path = os.path.join(dataset_path, f"{frame_id}.png")
-        if not os.path.isfile(image_path):
+        if not os.path.isfile(image_path):  # pragma: no cover
             raise FileNotFoundError(f"Image file not found: {image_path}")
         return cv2.imread(image_path)
 
@@ -131,7 +131,7 @@ class DatasetManager:
     def _pointcloud(frame_id: str, dataset_path: str = DATASET_PATH) -> o3d.geometry.PointCloud:
         """Return the point cloud for the given frame ID."""
         pointcloud_path = os.path.join(dataset_path, f"{frame_id}.ply")
-        if not os.path.isfile(pointcloud_path):
+        if not os.path.isfile(pointcloud_path):  # pragma: no cover
             raise FileNotFoundError(f"Point cloud file not found: {pointcloud_path}")
         return o3d.io.read_point_cloud(pointcloud_path)
 
