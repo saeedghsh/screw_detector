@@ -5,6 +5,8 @@ import datumaro
 import numpy as np
 import open3d as o3d
 import pytest
+from datumaro.components.annotation import Annotation
+from datumaro.components.media import Image
 from pytest import FixtureRequest
 
 from libs.dataset_management import DatasetManager, Frame
@@ -17,11 +19,19 @@ def dataset_manager_fixture():
         mock_import.return_value = mock_dataset
         mock_dataset.categories.return_value.get.return_value.items = [MagicMock(name="MockLabel")]
         mock_dataset.categories.return_value.get.return_value.items[0].name = "mock_label"
-        mock_dataset.__iter__.return_value = iter([MagicMock(id="mock/frame/1")])
-        mock_dataset.__getitem__.side_effect = lambda idx: MagicMock(
-            annotations=[MagicMock(spec=datumaro.components.annotation.Annotation)]
-        )
-        return DatasetManager(1)
+
+        # Create a mock annotation
+        mock_annotation = MagicMock(spec=Annotation)
+
+        # Create a mock item with Image media type using from_file()
+        mock_item = MagicMock()
+        mock_item.id = "battery_pack_1/zone_1/zone_1"
+        mock_item.media = Image.from_file(path="mock_path/mock_image.png")
+        mock_item.annotations = [mock_annotation]  # Return a list of mock annotations
+        mock_dataset.__iter__.return_value = iter([mock_item])
+        mock_dataset.__getitem__.side_effect = lambda idx: mock_item
+
+        return DatasetManager()
 
 
 @pytest.fixture
@@ -35,7 +45,7 @@ def dataset_manager_fixture_multi_labels():
         label2 = MagicMock()
         label2.name = "Label2"
         mock_dataset.categories.return_value.get.return_value.items = [label1, label2]
-        return DatasetManager(1)
+        return DatasetManager()
 
 
 def test_label_name_mapper_with_multiple_labels(request: pytest.FixtureRequest):
@@ -55,6 +65,28 @@ def test_frame_ids(request: FixtureRequest):
     frame_ids = dataset_manager.frame_ids
     assert isinstance(frame_ids, dict)
     assert all(isinstance(k, str) and isinstance(v, int) for k, v in frame_ids.items())
+
+
+def test_invalid_frame_id_format():
+    invalid_frame_ids = [
+        "invalid_frame_id",  # Missing parts
+        "battery_pack_1/zone_1/zone_2",  # Frame name mismatch
+        "wrong_prefix/zone_1/zone_1",  # Wrong prefix
+    ]
+
+    for invalid_frame_id in invalid_frame_ids:
+        with patch("libs.dataset_management.datumaro.Dataset.import_from") as mock_import:
+            mock_dataset = MagicMock()
+            mock_import.return_value = mock_dataset
+
+            # Create a mock item with a valid Image media type
+            mock_item = MagicMock()
+            mock_item.id = invalid_frame_id
+            mock_item.media = Image.from_file(path="mock_path/mock_image.png")
+            mock_dataset.__iter__.return_value = iter([mock_item])
+
+            with pytest.raises(ValueError, match="Frame ID must"):
+                DatasetManager()
 
 
 def test_label_name_mapper(request: FixtureRequest):
@@ -82,16 +114,11 @@ def test_frame(request: FixtureRequest):
     )
 
 
-def test_invalid_battery_pack():
-    with pytest.raises(ValueError, match="Battery pack must be "):
-        DatasetManager(3)
-
-
 def test_frame_file_not_found(request: FixtureRequest):
     frame_id = "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10"
-    # Clear cache before the test, otherwise @functools.lru_cache will make the patch ineffective
-    # dataset_manager = DatasetManager(battery_pack=1)  # Create an instance
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+
+    # Clear cache before the test, otherwise @functools.lru_cache will make the patch ineffective
     dataset_manager.frame.cache_clear()
 
     def isfile_side_effect(path):

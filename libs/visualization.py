@@ -8,7 +8,6 @@ images using OpenCV.
 # pylint: disable=no-member
 
 
-import functools
 from types import SimpleNamespace
 from typing import Callable, Tuple
 
@@ -20,7 +19,6 @@ from datumaro.components.annotation import Annotation
 from libs.dataset_management import Frame
 
 
-@functools.lru_cache(maxsize=100)
 def _colors(idx: int) -> Tuple[int, int, int]:
     """Return a list of colors for drawing annotations."""
     colors = {
@@ -106,7 +104,8 @@ class Visualizer:  # pylint: disable=too-few-public-methods
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         if self._config.save_output:
-            output_path = f"{self._config.output_dir}/{frame.output_path_2d()}"
+            output_path_2d = f"{frame.battery_pack()}_{frame.frame_name()}_2d.png"
+            output_path = f"{self._config.output_dir}/{output_path_2d}"
             cv2.imwrite(output_path, annotated_image)
 
     def visualize_frame(self, frame: Frame):

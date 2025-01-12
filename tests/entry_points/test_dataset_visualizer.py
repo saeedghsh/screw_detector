@@ -35,7 +35,7 @@ def test_main_executes_visualization(request: pytest.FixtureRequest):
         result = main(sys.argv[1:])
         assert result == os.EX_OK
 
-    dataset_manager.assert_called_once_with(2)
+    dataset_manager.assert_called_once()
     visualizer.assert_called_once()
     visualizer_instance = visualizer.return_value
     visualizer_instance.visualize_frame.assert_called_once_with("frame")
@@ -53,6 +53,6 @@ def test_main_handles_empty_frame_ids(request: pytest.FixtureRequest):
         result = main(sys.argv[1:])
         assert result == os.EX_OK
 
-    dataset_manager.assert_called_once_with(2)
+    dataset_manager.assert_called_once()
     visualizer_instance = visualizer.return_value
     visualizer_instance.visualize_frame.assert_not_called()  # Ensure no frames were visualized
