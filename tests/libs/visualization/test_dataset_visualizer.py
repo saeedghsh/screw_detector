@@ -7,8 +7,8 @@ import open3d as o3d
 import pytest
 from datumaro.components.annotation import AnnotationType
 
-from libs.dataset_management import Frame
-from libs.visualization import Visualizer
+from libs.dataset.manager import Frame
+from libs.visualization.dataset import DatasetVisualizer
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def visualizer_fixture():
         output_dir="output",
     )
     label_name_mapper = MagicMock(return_value="mock_label")
-    return Visualizer(config, label_name_mapper)
+    return DatasetVisualizer(config, label_name_mapper)
 
 
 def test_visualizer_resizes_image(request: pytest.FixtureRequest):
@@ -43,7 +43,7 @@ def test_visualize_frame_no_visualization():
         visualize_3d=False,
     )
     label_name_mapper = MagicMock(return_value="mock_label")
-    visualizer = Visualizer(config, label_name_mapper)
+    visualizer = DatasetVisualizer(config, label_name_mapper)
     image = np.zeros((100, 100, 3), dtype=np.uint8)
     pointcloud = o3d.geometry.PointCloud()
     annotations = []
@@ -61,7 +61,7 @@ def test_visualize_frame_with_bbox():
         output_dir="output",
     )
     label_name_mapper = MagicMock(return_value="mock_label")
-    visualizer = Visualizer(config, label_name_mapper)
+    visualizer = DatasetVisualizer(config, label_name_mapper)
     image = np.zeros((200, 200, 3), dtype=np.uint8)
     pointcloud = o3d.geometry.PointCloud()
     annotation = MagicMock(label=0)
@@ -83,7 +83,7 @@ def test_visualize_3d():
         output_dir="output",
     )
     label_name_mapper = MagicMock(return_value="mock_label")
-    visualizer = Visualizer(config, label_name_mapper)
+    visualizer = DatasetVisualizer(config, label_name_mapper)
     pointcloud = o3d.geometry.PointCloud()
     image = np.zeros((200, 200, 3), dtype=np.uint8)
     annotations = []

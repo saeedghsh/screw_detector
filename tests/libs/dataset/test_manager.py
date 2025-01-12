@@ -9,12 +9,12 @@ from datumaro.components.annotation import Annotation
 from datumaro.components.media import Image
 from pytest import FixtureRequest
 
-from libs.dataset_management import DatasetManager, Frame
+from libs.dataset.manager import DatasetManager, Frame
 
 
 @pytest.fixture
 def dataset_manager_fixture():
-    with patch("libs.dataset_management.datumaro.Dataset.import_from") as mock_import:
+    with patch("libs.dataset.manager.datumaro.Dataset.import_from") as mock_import:
         mock_dataset = MagicMock()
         mock_import.return_value = mock_dataset
         mock_dataset.categories.return_value.get.return_value.items = [MagicMock(name="MockLabel")]
@@ -36,7 +36,7 @@ def dataset_manager_fixture():
 
 @pytest.fixture
 def dataset_manager_fixture_multi_labels():
-    with patch("libs.dataset_management.datumaro.Dataset.import_from") as mock_import:
+    with patch("libs.dataset.manager.datumaro.Dataset.import_from") as mock_import:
         mock_dataset = MagicMock()
         mock_import.return_value = mock_dataset
         # Simulate multiple labels with proper string names
@@ -75,7 +75,7 @@ def test_invalid_frame_id_format():
     ]
 
     for invalid_frame_id in invalid_frame_ids:
-        with patch("libs.dataset_management.datumaro.Dataset.import_from") as mock_import:
+        with patch("libs.dataset.manager.datumaro.Dataset.import_from") as mock_import:
             mock_dataset = MagicMock()
             mock_import.return_value = mock_dataset
 

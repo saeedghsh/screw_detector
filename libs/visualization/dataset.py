@@ -16,7 +16,7 @@ import numpy as np
 import open3d as o3d
 from datumaro.components.annotation import Annotation
 
-from libs.dataset_management import Frame
+from libs.dataset.manager import Frame
 
 
 def _colors(idx: int) -> Tuple[int, int, int]:
@@ -39,7 +39,7 @@ def _text_font_args() -> dict:
     return {"fontFace": cv2.FONT_HERSHEY_SIMPLEX, "fontScale": 0.5, "thickness": 1}
 
 
-class Visualizer:  # pylint: disable=too-few-public-methods
+class DatasetVisualizer:  # pylint: disable=too-few-public-methods
     """Visualize images and point clouds from the dataset."""
 
     def __init__(self, config: SimpleNamespace, label_name_mapper: Callable):

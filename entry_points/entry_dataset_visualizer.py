@@ -8,9 +8,10 @@ import sys
 from types import SimpleNamespace
 from typing import Sequence
 
-from libs.dataset_management import DatasetManager, dataset_stats, split_train_test
+from libs.dataset.manager import DatasetManager
+from libs.dataset.utils import dataset_stats, split_train_test
 from libs.logger import setup_logging
-from libs.visualization import Visualizer
+from libs.visualization.dataset import DatasetVisualizer
 
 logger = setup_logging(name_appendix="data-inspector", level=logging.DEBUG)
 
@@ -32,7 +33,7 @@ def main(_: Sequence[str]) -> int:
 
     __ = split_train_test(dataset_manager, test_ratio=0.2)
 
-    visualizer = Visualizer(CONFIG, dataset_manager.label_name_mapper)
+    visualizer = DatasetVisualizer(CONFIG, dataset_manager.label_name_mapper)
 
     for frame_id in dataset_manager.frame_ids.keys():
         frame = dataset_manager.frame(frame_id)

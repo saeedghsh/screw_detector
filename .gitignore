@@ -1,8 +1,8 @@
-tools/
-dataset/
-ignore/
-output/
-logs/
+/tools/
+/dataset/
+/ignore/
+/output/
+/logs/
 .vscode/
 
 *.pyc
