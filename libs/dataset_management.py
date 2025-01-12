@@ -22,6 +22,7 @@ import numpy as np
 import open3d as o3d
 from datumaro.components.annotation import AnnotationType, LabelCategories
 from datumaro.components.media import Image
+from scipy.spatial.distance import pdist
 
 from libs.path_utils import repo_root
 
@@ -195,6 +196,17 @@ def dataset_stats(
                 annotation_count += 1
         return total_area / annotation_count
 
+    def _smallest_distance_bboxes_pairwise() -> float:
+
+        def _bboxes_x_y(frame_id):
+            return np.array([a.get_bbox()[:2] for a in dataset_manger._annotations(frame_id)])
+
+        min_distances = []
+        for frame_id in dataset_manger.frame_ids.keys():
+            distances = pdist(_bboxes_x_y(frame_id), metric="euclidean")
+            min_distances.append(np.min(distances))
+        return np.min(min_distances)
+
     stats = {}
     num_frames = len(dataset_manger._dataset)
     if num_frames == 0 and logger:
@@ -209,6 +221,7 @@ def dataset_stats(
             "per_label_count": _per_label_count(),
             "average_bbox_area": average_bbox_area,
             "average_bbox_size": np.sqrt(average_bbox_area),
+            "smallest_distance_bboxes_pairwise": _smallest_distance_bboxes_pairwise(),
         }
     if logger:
         for key, value in stats.items():
