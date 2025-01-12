@@ -5,9 +5,12 @@ frame IDs, accessing image and point cloud files, and obtaining annotations for
 specific frames.
 """
 
+import json
 import logging
+import os
 import random
 from collections import Counter
+from datetime import datetime
 from types import SimpleNamespace
 
 # pylint: disable=no-member
@@ -16,13 +19,15 @@ from typing import Dict, List, Optional
 import numpy as np
 from scipy.spatial.distance import pdist
 
-from libs.dataset.manager import BATTERY_PACKS, DatasetManager
+from libs.dataset.manager import BATTERY_PACKS, DATASET_PATH, DatasetManager
+
+CACHE_DIR = os.path.join(DATASET_PATH, "data_split_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 def dataset_stats(
-    dataset_manger: DatasetManager,
-    logger: Optional[logging.Logger] = None,
-) -> Dict[str, int]:  # pragma: no cover
+    dataset_manger: DatasetManager, logger: Optional[logging.Logger] = None
+) -> Dict[str, int]:
     # pylint: disable=protected-access
     """Return statistics about the dataset."""
 
@@ -60,15 +65,22 @@ def dataset_stats(
         return total_area / annotation_count
 
     def _smallest_distance_bboxes_pairwise() -> float:
-
         def _bboxes_x_y(frame_id):
-            return np.array([a.get_bbox()[:2] for a in dataset_manger._annotations(frame_id)])
+            annotations = dataset_manger._annotations(frame_id)
+            if not annotations:  # Check for empty annotations
+                return np.empty((0, 2))  # pragma: no cover
+            return np.array([a.get_bbox()[:2] for a in annotations])
 
         min_distances = []
         for frame_id in dataset_manger.frame_ids.keys():
-            distances = pdist(_bboxes_x_y(frame_id), metric="euclidean")
-            min_distances.append(np.min(distances))
-        return np.min(min_distances)
+            bboxes = _bboxes_x_y(frame_id)
+            if bboxes.size == 0:  # Skip if no bounding boxes
+                continue  # pragma: no cover
+            distances = pdist(bboxes, metric="euclidean")
+            if distances.size > 0:
+                min_distances.append(np.min(distances))  # pragma: no cover
+
+        return np.min(min_distances) if min_distances else float("inf")
 
     stats = {}
     num_frames = len(dataset_manger._dataset)
@@ -88,14 +100,14 @@ def dataset_stats(
         }
     if logger:
         for key, value in stats.items():
-            logger.info("Dataset statistics: %s: %s", key, value)
+            logger.info("Dataset statistics: %s: %s", key, value)  # pragma: no cover
 
     return stats
 
 
 def split_train_test(  # pylint: disable=too-many-locals
     dataset_manager: DatasetManager, test_ratio: float
-) -> SimpleNamespace:  # pragma: no cover
+) -> SimpleNamespace:
     """
     Splits the dataset into train and test sets based on the specified ratio of annotations
     for the labels "screw_head" and "screw_hole".
@@ -103,16 +115,6 @@ def split_train_test(  # pylint: disable=too-many-locals
     The split is frame-based, ensuring that the ratio of annotations with the specified labels
     in each set is approximately equal to the given split ratio. Frames are randomly assigned
     to train or test sets while maintaining the desired ratio of annotations.
-
-    Args:
-        dataset_manager (DatasetManager): The dataset manager containing frames and annotations.
-        test_ratio (float): The desired ratio of annotations in the test set (between 0 and 1).
-
-    Returns:
-        SimpleNamespace: An object containing:
-            - train_frame_ids (list of str): List of frame IDs in the train set.
-            - test_frame_ids (list of str): List of frame IDs in the test set.
-            - exact_annotation_test_ratio (float): The exact ratio of annotations in the test set.
     """
     annotation_labels = {"screw_head", "screw_hole"}
 
@@ -145,9 +147,11 @@ def split_train_test(  # pylint: disable=too-many-locals
     for frame_id in frames:
         label_counts = frame_label_counts[frame_id]
         if all(
-            current_test_counts[label] + label_counts[label] <= desired_test_counts[label]
+            current_test_counts.get(label, 0) + label_counts.get(label, 0)
+            <= desired_test_counts.get(label, 0)
             for label in annotation_labels
         ):
+
             test_frame_ids.append(frame_id)
             current_test_counts.update(label_counts)
         else:
@@ -156,10 +160,45 @@ def split_train_test(  # pylint: disable=too-many-locals
     # Compute the exact annotation ratio achieved
     total_test_annotations = sum(current_test_counts.values())
     total_annotations = sum(total_label_counts.values())
-    exact_test_ratio = total_test_annotations / total_annotations if total_annotations > 0 else 0
+    exact_test_ratio = total_test_annotations / total_annotations if total_annotations > 0 else 0.0
 
     return SimpleNamespace(
         train_frame_ids=train_frame_ids,
         test_frame_ids=test_frame_ids,
         exact_annotation_test_ratio=exact_test_ratio,
+    )
+
+
+def cache_split(dataset_manager: DatasetManager, test_ratio: float) -> str:
+    """Split the dataset and store the split result in a timestamped file."""
+    split_result = split_train_test(dataset_manager, test_ratio)
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    split_file = os.path.join(CACHE_DIR, f"{timestamp}_{test_ratio}_split.json")
+
+    split_data = {
+        "train_frame_ids": split_result.train_frame_ids,
+        "test_frame_ids": split_result.test_frame_ids,
+        "split_ratio": test_ratio,
+        "timestamp": timestamp,
+    }
+
+    with open(split_file, "w", encoding="utf-8") as file:
+        json.dump(split_data, file, indent=4)
+
+    return split_file
+
+
+def load_cached_split(file_path: str) -> SimpleNamespace:
+    """Load a cached split from a given file path."""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Cached split file not found: {file_path}")  # pragma: no cover
+
+    with open(file_path, "r", encoding="utf-8") as file:
+        split_data = json.load(file)
+
+    return SimpleNamespace(
+        train_frame_ids=split_data["train_frame_ids"],
+        test_frame_ids=split_data["test_frame_ids"],
+        split_ratio=split_data["split_ratio"],
+        timestamp=split_data["timestamp"],
     )
