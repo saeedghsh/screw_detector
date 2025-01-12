@@ -8,7 +8,7 @@ import sys
 from types import SimpleNamespace
 from typing import Sequence
 
-from libs.dataset_management import DatasetManager
+from libs.dataset_management import DatasetManager, dataset_stats
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
@@ -17,10 +17,10 @@ logger = setup_logging(name_appendix="data-inspector", level=logging.DEBUG)
 
 CONFIG = SimpleNamespace(
     image_resize_factor=0.5,
-    visualize_2d=True,
+    visualize_2d=False,
     visualize_3d=False,
     show_output=False,
-    save_output=True,
+    save_output=False,
     output_dir="output",
 )
 
@@ -28,6 +28,8 @@ CONFIG = SimpleNamespace(
 def main(_: Sequence[str]) -> int:
     """Main entry point for the data inspector application."""
     dataset_manager = DatasetManager()
+    dataset_stats(dataset_manager, logger)
+
     visualizer = Visualizer(CONFIG, dataset_manager.label_name_mapper)
 
     for frame_id in dataset_manager.frame_ids.keys():

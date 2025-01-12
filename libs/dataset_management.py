@@ -6,11 +6,12 @@ specific frames.
 """
 
 import functools
+import logging
 import os
 from dataclasses import dataclass
 
 # pylint: disable=no-member
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import cv2
 import datumaro
@@ -149,3 +150,65 @@ class DatasetManager:
             pointcloud=DatasetManager._pointcloud(frame_id),
             annotations=self._annotations(frame_id),
         )
+
+
+def dataset_stats(
+    dataset_manger: DatasetManager,
+    logger: Optional[logging.Logger] = None,
+) -> Dict[str, int]:  # pragma: no cover
+    # pylint: disable=protected-access
+    """Return statistics about the dataset."""
+
+    def _frame_ids_in_battery_pack(battery_pack: int) -> List[str]:
+        return [
+            frame_id
+            for frame_id in dataset_manger.frame_ids.keys()
+            if f"battery_pack_{battery_pack}" in frame_id
+        ]
+
+    def _per_battery_pack_frame_counts() -> Dict[str, int]:
+        return {
+            f"battery_pack_{battery_pack}": len(_frame_ids_in_battery_pack(battery_pack))
+            for battery_pack in BATTERY_PACKS
+        }
+
+    def _per_label_count() -> Dict[str, int]:
+        label_counts = {}
+        for frame_id in dataset_manger.frame_ids.keys():
+            for annotation in dataset_manger._annotations(frame_id):
+                annotation_label = dataset_manger.label_name_mapper(annotation.label)
+                if annotation_label not in label_counts:
+                    label_counts[annotation_label] = 0
+                label_counts[annotation_label] += 1
+        return label_counts
+
+    def _average_bbox_area() -> float:
+        total_area = 0
+        annotation_count = 0
+        for frame_id in dataset_manger.frame_ids.keys():
+            for annotation in dataset_manger._annotations(frame_id):
+                _, _, w, h = annotation.get_bbox()
+                total_area += w * h
+                annotation_count += 1
+        return total_area / annotation_count
+
+    stats = {}
+    num_frames = len(dataset_manger._dataset)
+    if num_frames == 0 and logger:
+        logger.warning("No frames found in the dataset")
+
+    if num_frames > 0:
+        average_bbox_area = _average_bbox_area()
+        stats = {
+            "num_frames": num_frames,
+            "per_battery_pack_count": _per_battery_pack_frame_counts(),
+            "num_labels": len(dataset_manger._label_categories.items),
+            "per_label_count": _per_label_count(),
+            "average_bbox_area": average_bbox_area,
+            "average_bbox_size": np.sqrt(average_bbox_area),
+        }
+    if logger:
+        for key, value in stats.items():
+            logger.info("Dataset statistics: %s: %s", key, value)
+
+    return stats
