@@ -8,7 +8,7 @@ import sys
 from types import SimpleNamespace
 from typing import Sequence
 
-from libs.dataset_management import DatasetManager, dataset_stats
+from libs.dataset_management import DatasetManager, dataset_stats, split_train_test
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
@@ -29,6 +29,8 @@ def main(_: Sequence[str]) -> int:
     """Main entry point for the data inspector application."""
     dataset_manager = DatasetManager()
     dataset_stats(dataset_manager, logger)
+
+    __ = split_train_test(dataset_manager, test_ratio=0.2)
 
     visualizer = Visualizer(CONFIG, dataset_manager.label_name_mapper)
 

@@ -8,7 +8,10 @@ specific frames.
 import functools
 import logging
 import os
+import random
+from collections import Counter
 from dataclasses import dataclass
+from types import SimpleNamespace
 
 # pylint: disable=no-member
 from typing import Dict, List, Optional
@@ -212,3 +215,75 @@ def dataset_stats(
             logger.info("Dataset statistics: %s: %s", key, value)
 
     return stats
+
+
+def split_train_test(  # pylint: disable=too-many-locals
+    dataset_manager: DatasetManager, test_ratio: float
+) -> SimpleNamespace:  # pragma: no cover
+    """
+    Splits the dataset into train and test sets based on the specified ratio of annotations
+    for the labels "screw_head" and "screw_hole".
+
+    The split is frame-based, ensuring that the ratio of annotations with the specified labels
+    in each set is approximately equal to the given split ratio. Frames are randomly assigned
+    to train or test sets while maintaining the desired ratio of annotations.
+
+    Args:
+        dataset_manager (DatasetManager): The dataset manager containing frames and annotations.
+        test_ratio (float): The desired ratio of annotations in the test set (between 0 and 1).
+
+    Returns:
+        SimpleNamespace: An object containing:
+            - train_frame_ids (list of str): List of frame IDs in the train set.
+            - test_frame_ids (list of str): List of frame IDs in the test set.
+            - exact_annotation_test_ratio (float): The exact ratio of annotations in the test set.
+    """
+    annotation_labels = {"screw_head", "screw_hole"}
+
+    # Count annotations for each label across all frames
+    frame_label_counts = {}
+    total_label_counts: Counter[str] = Counter()
+
+    for frame_id in dataset_manager.frame_ids.keys():
+        label_counts: Counter[str] = Counter()
+        for annotation in dataset_manager.frame(frame_id).annotations:
+            label_name = dataset_manager.label_name_mapper(annotation.label)
+            if label_name in annotation_labels:
+                label_counts[label_name] += 1
+                total_label_counts[label_name] += 1
+        frame_label_counts[frame_id] = label_counts
+
+    # Desired number of annotations per label for test set
+    desired_test_counts = {
+        label: int(count * test_ratio) for label, count in total_label_counts.items()
+    }
+
+    # Randomly shuffle frames for unbiased selection
+    frames = list(frame_label_counts.keys())
+    random.shuffle(frames)
+
+    train_frame_ids, test_frame_ids = [], []
+    current_test_counts: Counter[str] = Counter()
+
+    # Assign frames to train or test to achieve the desired ratio
+    for frame_id in frames:
+        label_counts = frame_label_counts[frame_id]
+        if all(
+            current_test_counts[label] + label_counts[label] <= desired_test_counts[label]
+            for label in annotation_labels
+        ):
+            test_frame_ids.append(frame_id)
+            current_test_counts.update(label_counts)
+        else:
+            train_frame_ids.append(frame_id)
+
+    # Compute the exact annotation ratio achieved
+    total_test_annotations = sum(current_test_counts.values())
+    total_annotations = sum(total_label_counts.values())
+    exact_test_ratio = total_test_annotations / total_annotations if total_annotations > 0 else 0
+
+    return SimpleNamespace(
+        train_frame_ids=train_frame_ids,
+        test_frame_ids=test_frame_ids,
+        exact_annotation_test_ratio=exact_test_ratio,
+    )
