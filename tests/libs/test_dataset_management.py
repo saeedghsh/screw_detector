@@ -7,7 +7,7 @@ import open3d as o3d
 import pytest
 from pytest import FixtureRequest
 
-from libs.dataset_management import DATASET_PATH, DatasetManager, Frame
+from libs.dataset_management import DatasetManager, Frame
 
 
 @pytest.fixture
@@ -65,30 +65,6 @@ def test_label_name_mapper(request: FixtureRequest):
     assert isinstance(label_name, str)
 
 
-def test_image_valid():
-    frame_id = "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10"
-    with patch("os.path.isfile", return_value=True):
-        with patch("cv2.imread", return_value=np.zeros((100, 100, 3))):
-            image = DatasetManager.image(frame_id, DATASET_PATH)
-    assert isinstance(image, np.ndarray)
-
-
-def test_pointcloud_valid():
-    frame_id = "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10"
-    with patch("os.path.isfile", return_value=True):
-        with patch("open3d.io.read_point_cloud", return_value=o3d.geometry.PointCloud()):
-            pointcloud = DatasetManager.pointcloud(frame_id, DATASET_PATH)
-    assert isinstance(pointcloud, o3d.geometry.PointCloud)
-
-
-def test_frame_annotations(request: FixtureRequest):
-    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
-    frame_id = next(iter(dataset_manager.frame_ids))  # Get any valid frame_id
-    annotations = dataset_manager.frame_annotations(frame_id)
-    assert isinstance(annotations, list)
-    assert all(isinstance(ann, datumaro.components.annotation.Annotation) for ann in annotations)
-
-
 def test_frame(request: FixtureRequest):
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     frame_id = next(iter(dataset_manager.frame_ids))  # Get any valid frame_id
@@ -111,19 +87,31 @@ def test_invalid_battery_pack():
         DatasetManager(3)
 
 
-def test_image_file_not_found():
+def test_frame_file_not_found(request: FixtureRequest):
     frame_id = "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10"
     # Clear cache before the test, otherwise @functools.lru_cache will make the patch ineffective
-    DatasetManager.image.cache_clear()  # Clear cache before the test
-    with patch("os.path.isfile", return_value=False):  # Return False to trigger FileNotFoundError
+    # dataset_manager = DatasetManager(battery_pack=1)  # Create an instance
+    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
+    dataset_manager.frame.cache_clear()
+
+    def isfile_side_effect(path):
+        if path.endswith(".png"):
+            return False  # Simulate image file not found
+        if path.endswith(".ply"):
+            return True  # Simulate point cloud file exists
+        return True
+
+    with patch("os.path.isfile", side_effect=isfile_side_effect):
         with pytest.raises(FileNotFoundError, match="Image file not found"):
-            DatasetManager.image(frame_id, DATASET_PATH)
+            dataset_manager.frame(frame_id)
 
+    def isfile_side_effect_pointcloud(path):
+        if path.endswith(".png"):
+            return True  # Simulate image file exists
+        if path.endswith(".ply"):
+            return False  # Simulate point cloud file not found
+        return True
 
-def test_pointcloud_file_not_found():
-    frame_id = "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10"
-    # Clear cache before the test, otherwise @functools.lru_cache will make the patch ineffective
-    DatasetManager.pointcloud.cache_clear()
-    with patch("os.path.isfile", return_value=False):  # Return False to trigger FileNotFoundError
+    with patch("os.path.isfile", side_effect=isfile_side_effect_pointcloud):
         with pytest.raises(FileNotFoundError, match="Point cloud file not found"):
-            DatasetManager.pointcloud(frame_id, DATASET_PATH)
+            dataset_manager.frame(frame_id)

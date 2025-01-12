@@ -62,51 +62,38 @@ class DatasetManager:
         """
         return self._frame_ids
 
-    def frame(self, frame_id: str) -> Frame:
-        """Return the frame with the given frame ID."""
-        return Frame(
-            id=frame_id,
-            image=self.image(frame_id),
-            pointcloud=self.pointcloud(frame_id),
-            annotations=self.frame_annotations(frame_id),
-        )
-
     @functools.lru_cache(maxsize=50)
     def label_name_mapper(self, annotation_label_idx: int) -> str:
         """Return the name of the label with the given index."""
         return self._label_categories.items[annotation_label_idx].name
 
     @staticmethod
-    @functools.lru_cache(maxsize=50)
-    def _image_path(frame_id: str, dataset_path: str) -> str:
-        """Return the path to the image file for the given frame ID."""
-        return os.path.join(dataset_path, f"{frame_id}.png")
-
-    @staticmethod
-    @functools.lru_cache(maxsize=50)
-    def _pointcloud_path(frame_id: str, dataset_path: str) -> str:
-        """Return the path to the point cloud file for the given frame ID."""
-        return os.path.join(dataset_path, f"{frame_id}.ply")
-
-    @staticmethod
-    @functools.lru_cache(maxsize=50)
-    def image(frame_id: str, dataset_path: str = DATASET_PATH) -> np.ndarray:
+    def _image(frame_id: str, dataset_path: str = DATASET_PATH) -> np.ndarray:
         """Return the image for the given frame ID."""
-        image_path = DatasetManager._image_path(frame_id, dataset_path)
+        image_path = os.path.join(dataset_path, f"{frame_id}.png")
         if not os.path.isfile(image_path):
             raise FileNotFoundError(f"Image file not found: {image_path}")
         return cv2.imread(image_path)
 
     @staticmethod
-    @functools.lru_cache(maxsize=50)
-    def pointcloud(frame_id: str, dataset_path: str = DATASET_PATH) -> o3d.geometry.PointCloud:
+    def _pointcloud(frame_id: str, dataset_path: str = DATASET_PATH) -> o3d.geometry.PointCloud:
         """Return the point cloud for the given frame ID."""
-        pointcloud_path = DatasetManager._pointcloud_path(frame_id, dataset_path)
+        pointcloud_path = os.path.join(dataset_path, f"{frame_id}.ply")
         if not os.path.isfile(pointcloud_path):
             raise FileNotFoundError(f"Point cloud file not found: {pointcloud_path}")
         return o3d.io.read_point_cloud(pointcloud_path)
 
-    def frame_annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
+    def _annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
         """Return the annotations for the given frame ID."""
         frame_idx = self._frame_ids[frame_id]
         return self._dataset[frame_idx].annotations
+
+    @functools.lru_cache(maxsize=50)
+    def frame(self, frame_id: str) -> Frame:
+        """Return the frame with the given frame ID."""
+        return Frame(
+            id=frame_id,
+            image=DatasetManager._image(frame_id),
+            pointcloud=DatasetManager._pointcloud(frame_id),
+            annotations=self._annotations(frame_id),
+        )
