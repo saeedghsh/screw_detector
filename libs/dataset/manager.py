@@ -138,18 +138,12 @@ class DatasetManager:
     @staticmethod
     def _image(frame_id: str) -> np.ndarray:
         """Return the image for the given frame ID."""
-        img_path = image_path(frame_id)
-        # if not os.path.isfile(img_path):  # pragma: no cover
-        #     raise FileNotFoundError(f"Image file not found: {img_path}")
-        return cv2.imread(img_path)
+        return cv2.imread(image_path(frame_id))
 
     @staticmethod
     def _pointcloud(frame_id: str) -> o3d.geometry.PointCloud:
         """Return the point cloud for the given frame ID."""
-        pc_path = pointcloud_path(frame_id)
-        # if not os.path.isfile(pc_path):  # pragma: no cover
-        #     raise FileNotFoundError(f"Point cloud file not found: {pc_path}")
-        return o3d.io.read_point_cloud(pc_path)
+        return o3d.io.read_point_cloud(pointcloud_path(frame_id))
 
     def _annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
         """Return the annotations for the given frame ID."""
