@@ -30,6 +30,22 @@ def _annotations_file_path(battery_pack: int) -> str:
     return os.path.join(DATASET_PATH, f"battery_pack_{battery_pack}_annotations_datumaro.json")
 
 
+def image_path(frame_id: str) -> str:  # pragma: no cover
+    """Return the path to the image file for the given frame ID."""
+    p = os.path.join(DATASET_PATH, f"{frame_id}.png")
+    if not os.path.isfile(p):
+        raise FileNotFoundError(f"Image file not found: {p}")
+    return p
+
+
+def pointcloud_path(frame_id: str) -> str:  # pragma: no cover
+    """Return the path to the point cloud file for the given frame ID."""
+    p = os.path.join(DATASET_PATH, f"{frame_id}.ply")
+    if not os.path.isfile(p):  # pragma: no cover
+        raise FileNotFoundError(f"Point cloud file not found: {p}")
+    return p
+
+
 @dataclass
 class Frame:  # pylint: disable=missing-class-docstring
     id: str
@@ -120,20 +136,20 @@ class DatasetManager:
         return self._label_categories.items[annotation_label_idx].name
 
     @staticmethod
-    def _image(frame_id: str, dataset_path: str = DATASET_PATH) -> np.ndarray:
+    def _image(frame_id: str) -> np.ndarray:
         """Return the image for the given frame ID."""
-        image_path = os.path.join(dataset_path, f"{frame_id}.png")
-        if not os.path.isfile(image_path):  # pragma: no cover
-            raise FileNotFoundError(f"Image file not found: {image_path}")
-        return cv2.imread(image_path)
+        img_path = image_path(frame_id)
+        # if not os.path.isfile(img_path):  # pragma: no cover
+        #     raise FileNotFoundError(f"Image file not found: {img_path}")
+        return cv2.imread(img_path)
 
     @staticmethod
-    def _pointcloud(frame_id: str, dataset_path: str = DATASET_PATH) -> o3d.geometry.PointCloud:
+    def _pointcloud(frame_id: str) -> o3d.geometry.PointCloud:
         """Return the point cloud for the given frame ID."""
-        pointcloud_path = os.path.join(dataset_path, f"{frame_id}.ply")
-        if not os.path.isfile(pointcloud_path):  # pragma: no cover
-            raise FileNotFoundError(f"Point cloud file not found: {pointcloud_path}")
-        return o3d.io.read_point_cloud(pointcloud_path)
+        pc_path = pointcloud_path(frame_id)
+        # if not os.path.isfile(pc_path):  # pragma: no cover
+        #     raise FileNotFoundError(f"Point cloud file not found: {pc_path}")
+        return o3d.io.read_point_cloud(pc_path)
 
     def _annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
         """Return the annotations for the given frame ID."""
