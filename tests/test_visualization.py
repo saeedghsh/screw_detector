@@ -8,7 +8,7 @@ import pytest
 from datumaro.components.annotation import AnnotationType
 
 from libs.dataset.manager import Frame
-from libs.visualization.dataset import Visualizer
+from libs.visualization import Visualizer
 
 
 @pytest.fixture

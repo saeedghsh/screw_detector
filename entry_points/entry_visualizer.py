@@ -11,7 +11,7 @@ from typing import Sequence
 from libs.dataset.manager import DatasetManager
 from libs.dataset.utils import dataset_stats, split_train_test
 from libs.logger import setup_logging
-from libs.visualization.dataset import Visualizer
+from libs.visualization import Visualizer
 
 logger = setup_logging(name_appendix="data-inspector", level=logging.DEBUG)
 
