@@ -5,6 +5,7 @@ frame IDs, accessing image and point cloud files, and obtaining annotations for
 specific frames.
 """
 
+import glob
 import json
 import logging
 import os
@@ -16,6 +17,7 @@ from types import SimpleNamespace
 # pylint: disable=no-member
 from typing import Dict, List, Optional
 
+import cv2
 import numpy as np
 from scipy.spatial.distance import pdist
 
@@ -26,15 +28,14 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 def dataset_stats(
-    dataset_manger: DatasetManager, logger: Optional[logging.Logger] = None
+    dataset_manager: DatasetManager, logger: Optional[logging.Logger] = None
 ) -> Dict[str, int]:
-    # pylint: disable=protected-access
     """Return statistics about the dataset."""
 
     def _frame_ids_in_battery_pack(battery_pack: int) -> List[str]:
         return [
             frame_id
-            for frame_id in dataset_manger.frame_ids.keys()
+            for frame_id in dataset_manager.frame_ids.keys()
             if f"battery_pack_{battery_pack}" in frame_id
         ]
 
@@ -46,33 +47,35 @@ def dataset_stats(
 
     def _per_label_count() -> Dict[str, int]:
         label_counts = {}
-        for frame_id in dataset_manger.frame_ids.keys():
-            for annotation in dataset_manger._annotations(frame_id):
-                annotation_label = dataset_manger.label_name_mapper(annotation.label)
-                if annotation_label not in label_counts:
-                    label_counts[annotation_label] = 0
-                label_counts[annotation_label] += 1
+        for frame_id in dataset_manager.frame_ids.keys():
+            if (annotations := dataset_manager.frame(frame_id).annotations) is not None:
+                for annotation in annotations:
+                    annotation_label = dataset_manager.label_name_mapper(annotation.label)
+                    if annotation_label not in label_counts:
+                        label_counts[annotation_label] = 0
+                    label_counts[annotation_label] += 1
+
         return label_counts
 
     def _average_bbox_area() -> float:
         total_area = 0
         annotation_count = 0
-        for frame_id in dataset_manger.frame_ids.keys():
-            for annotation in dataset_manger._annotations(frame_id):
-                _, _, w, h = annotation.get_bbox()
-                total_area += w * h
-                annotation_count += 1
+        for frame_id in dataset_manager.frame_ids.keys():
+            if (annotations := dataset_manager.frame(frame_id).annotations) is not None:
+                for annotation in annotations:
+                    _, _, w, h = annotation.get_bbox()
+                    total_area += w * h
+                    annotation_count += 1
         return total_area / annotation_count
 
     def _smallest_distance_bboxes_pairwise() -> float:
         def _bboxes_x_y(frame_id):
-            annotations = dataset_manger._annotations(frame_id)
-            if not annotations:  # Check for empty annotations
-                return np.empty((0, 2))  # pragma: no cover
-            return np.array([a.get_bbox()[:2] for a in annotations])
+            if (annotations := dataset_manager.frame(frame_id).annotations) is not None:
+                return np.array([a.get_bbox()[:2] for a in annotations])
+            return np.empty((0, 2))  # pragma: no cover
 
         min_distances = []
-        for frame_id in dataset_manger.frame_ids.keys():
+        for frame_id in dataset_manager.frame_ids.keys():
             bboxes = _bboxes_x_y(frame_id)
             if bboxes.size == 0:  # Skip if no bounding boxes
                 continue  # pragma: no cover
@@ -83,7 +86,7 @@ def dataset_stats(
         return np.min(min_distances) if min_distances else float("inf")
 
     stats = {}
-    num_frames = len(dataset_manger._dataset)
+    num_frames = dataset_manager.frame_count()
     if num_frames == 0 and logger:
         logger.warning("No frames found in the dataset")
 
@@ -92,7 +95,7 @@ def dataset_stats(
         stats = {
             "num_frames": num_frames,
             "per_battery_pack_count": _per_battery_pack_frame_counts(),
-            "num_labels": len(dataset_manger._label_categories.items),
+            "num_labels": dataset_manager.label_count(),
             "per_label_count": _per_label_count(),
             "average_bbox_area": average_bbox_area,
             "average_bbox_size": np.sqrt(average_bbox_area),
@@ -124,12 +127,13 @@ def split_train_test(  # pylint: disable=too-many-locals
 
     for frame_id in dataset_manager.frame_ids.keys():
         label_counts: Counter[str] = Counter()
-        for annotation in dataset_manager.frame(frame_id).annotations:
-            label_name = dataset_manager.label_name_mapper(annotation.label)
-            if label_name in annotation_labels:
-                label_counts[label_name] += 1
-                total_label_counts[label_name] += 1
-        frame_label_counts[frame_id] = label_counts
+        if (annotations := dataset_manager.frame(frame_id).annotations) is not None:
+            for annotation in annotations:
+                label_name = dataset_manager.label_name_mapper(annotation.label)
+                if label_name in annotation_labels:
+                    label_counts[label_name] += 1
+                    total_label_counts[label_name] += 1
+            frame_label_counts[frame_id] = label_counts
 
     # Desired number of annotations per label for test set
     desired_test_counts = {
@@ -202,3 +206,36 @@ def load_cached_split(file_path: str) -> SimpleNamespace:
         split_ratio=split_data["split_ratio"],
         timestamp=split_data["timestamp"],
     )
+
+
+def load_images(input_path: str) -> List[np.ndarray]:
+    """
+    Load images from a single file or a directory.
+
+    :param input_path: Path to an image file or a directory containing images.
+    :return: List of loaded images as numpy arrays.
+    :raises FileNotFoundError: If the input path does not exist or no images are found.
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input path '{input_path}' does not exist.")
+
+    images = []
+    if os.path.isfile(input_path):
+        image = cv2.imread(input_path)
+        if image is None:
+            raise ValueError(f"Failed to load image from '{input_path}'.")
+        images.append(image)
+    elif os.path.isdir(input_path):
+        for file_path in sorted(glob.glob(os.path.join(input_path, "**", "*.png"), recursive=True)):
+            image = cv2.imread(file_path)
+            if image is not None:
+                images.append(image)
+            else:
+                raise ValueError(f"Failed to load image from '{file_path}'.")  # pragma: no cover
+    else:
+        raise ValueError(f"Input path '{input_path}' is neither a file nor a directory.")
+
+    if not images:
+        raise FileNotFoundError(f"No images found in '{input_path}'.")
+
+    return images

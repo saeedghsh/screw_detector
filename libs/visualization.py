@@ -7,31 +7,31 @@ images using OpenCV.
 
 # pylint: disable=no-member
 
-
 from types import SimpleNamespace
-from typing import Callable, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import cv2
 import numpy as np
 import open3d as o3d
 from datumaro.components.annotation import Annotation
 
-from libs.dataset.manager import Frame
+from libs.dataset.data_structure import BoundingBox, Frame
 
 
-def _colors(idx: int) -> Tuple[int, int, int]:
+def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
     """Return a list of colors for drawing annotations."""
     colors = {
         "Blue": (255, 0, 0),  # Blue
         "Green": (0, 255, 0),  # Green
         "Red": (0, 0, 255),  # Red
         "Cyan": (255, 255, 0),  # Cyan
-        "Magenta": (255, 0, 255),  # Magenta
         "Yellow": (0, 255, 255),  # Yellow
         "Black": (0, 0, 0),  # Black
         "White": (255, 255, 255),  # White
+        "Magenta": (255, 0, 255),  # Magenta
     }
-    return list(colors.values())[idx % len(colors)]
+    i = idx % len(colors) if idx is not None else -1
+    return list(colors.values())[i]
 
 
 def _text_font_args() -> dict:
@@ -39,42 +39,75 @@ def _text_font_args() -> dict:
     return {"fontFace": cv2.FONT_HERSHEY_SIMPLEX, "fontScale": 0.5, "thickness": 1}
 
 
+def _write_label_with_prefix(
+    annotated_image: np.ndarray,
+    prefix: str,
+    label_name: str,
+    label_coordinates: SimpleNamespace,
+    color: Tuple[int, int, int],
+):
+    """Write the prefixed label name on the image."""
+    full_label = f"[{prefix}]-{label_name}"
+    org = (label_coordinates.x, label_coordinates.y - 10)
+    cv2.putText(img=annotated_image, text=full_label, org=org, color=color, **_text_font_args())
+
+
+def _draw_bbox(
+    annotated_image: np.ndarray, bbox: BoundingBox, color: Tuple[int, int, int], filled: bool
+):
+    """Draw a bounding box with either filled transparency or empty rectangle style."""
+    x, y, w, h = bbox.x, bbox.y, bbox.w, bbox.h
+    if filled:
+        overlay = annotated_image.copy()
+        cv2.rectangle(overlay, (x, y), (x + w, y + h), color, thickness=cv2.FILLED)
+        cv2.addWeighted(overlay, 0.3, annotated_image, 0.7, 0, annotated_image)
+    else:
+        cv2.rectangle(annotated_image, (x, y), (x + w, y + h), color, 2)
+
+
 class Visualizer:  # pylint: disable=too-few-public-methods
     """Visualize images and point clouds from the dataset."""
 
-    def __init__(self, config: SimpleNamespace, label_name_mapper: Callable):
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        annotation_label_mapper: Callable = str,
+        detection_label_mapper: Callable = str,
+    ):
         self._config = config
-        self._label_name_mapper = label_name_mapper
+        self._annotation_label_mapper = annotation_label_mapper
+        self._detection_label_mapper = detection_label_mapper
 
-    def _write_annotation_label(
-        self,
-        annotated_image: np.ndarray,
-        label_name: str,
-        label_coordinates: SimpleNamespace,
-        color: Tuple[int, int, int],
-    ):
-        """Write the label name on the image next to annotation."""
-        org = (label_coordinates.x, label_coordinates.y - 10)
-        cv2.putText(img=annotated_image, text=label_name, org=org, color=color, **_text_font_args())
+    def _resize_image(self, image: np.ndarray) -> np.ndarray:
+        """Resize the image according to the configuration."""
+        if self._config.image_resize_factor != 1.0:
+            return cv2.resize(
+                image,
+                (0, 0),
+                fx=self._config.image_resize_factor,
+                fy=self._config.image_resize_factor,
+            )
+        return image
 
-    def _draw_annotation_as_bbox(
-        self,
-        annotated_image: np.ndarray,
-        annotation: Annotation,
-        label_name: str,
-        color: Tuple[int, int, int],
-    ):
-        """Draws an annotation on the image as a bounding box."""
-        x, y, w, h = annotation.get_bbox()
-        x, y, w, h = (
-            int(x * self._config.image_resize_factor),
-            int(y * self._config.image_resize_factor),
-            int(w * self._config.image_resize_factor),
-            int(h * self._config.image_resize_factor),
-        )
-        cv2.rectangle(annotated_image, (x, y), (x + w, y + h), color, 2)
-        label_coordinates = SimpleNamespace(x=int(x), y=int(y))
-        self._write_annotation_label(annotated_image, label_name, label_coordinates, color)
+    def _draw_annotations(self, annotated_image: np.ndarray, annotations: List[Annotation]):
+        """Draw annotations as filled rectangles"""
+        for annotation in annotations:
+            color = _colors(annotation.label)
+            label_name = self._annotation_label_mapper(annotation.label)
+            bbox = BoundingBox(*annotation.get_bbox()).resize(self._config.image_resize_factor)
+            _draw_bbox(annotated_image, bbox, color, filled=True)
+            label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
+            _write_label_with_prefix(annotated_image, "A", label_name, label_coordinates, color)
+
+    def _draw_detections(self, annotated_image: np.ndarray, detections: List[Annotation]):
+        """Draw detections as empty rectangles."""
+        for detection in detections:
+            color = _colors(detection.label)
+            label_name = self._detection_label_mapper(detection.label)
+            bbox = BoundingBox(*detection.get_bbox()).resize(self._config.image_resize_factor)
+            _draw_bbox(annotated_image, bbox, color, filled=False)
+            label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
+            _write_label_with_prefix(annotated_image, "D", label_name, label_coordinates, color)
 
     def _visualize_3d(self, frame: Frame):
         """Visualize a point cloud."""
@@ -83,26 +116,17 @@ class Visualizer:  # pylint: disable=too-few-public-methods
 
     def _visualize_2d(self, frame: Frame):
         """Visualize a frame with its image and annotations."""
-        annotated_image = frame.image.copy()
-        if self._config.image_resize_factor != 1.0:
-            annotated_image = cv2.resize(
-                annotated_image,
-                (0, 0),
-                fx=self._config.image_resize_factor,
-                fy=self._config.image_resize_factor,
-            )
-        for annotation in frame.annotations:
-            self._draw_annotation_as_bbox(
-                annotated_image=annotated_image,
-                annotation=annotation,
-                label_name=self._label_name_mapper(annotation.label),
-                color=_colors(annotation.label),
-            )
+        annotated_image = self._resize_image(frame.image.copy())
+        if frame.annotations is not None:
+            self._draw_annotations(annotated_image, frame.annotations)
+        if frame.detections is not None:
+            self._draw_detections(annotated_image, frame.detections)
 
         if self._config.show_output:
             cv2.imshow("Annotated Image", annotated_image)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+
         if self._config.save_output:
             output_path_2d = f"{frame.battery_pack()}_{frame.frame_name()}_2d.png"
             output_path = f"{self._config.output_dir}/{output_path_2d}"

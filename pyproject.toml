@@ -1,6 +1,6 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v"
+addopts = "-v --cov=libs --cov-report=term-missing"
 python_files = ["test_*.py"]
 filterwarnings = ["ignore::DeprecationWarning"]
 

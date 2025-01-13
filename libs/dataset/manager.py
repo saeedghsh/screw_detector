@@ -7,7 +7,6 @@ specific frames.
 
 import functools
 import os
-from dataclasses import dataclass
 
 # pylint: disable=no-member
 from typing import Dict, List
@@ -19,6 +18,7 @@ import open3d as o3d
 from datumaro.components.annotation import AnnotationType, LabelCategories
 from datumaro.components.media import Image
 
+from libs.dataset.data_structure import Frame
 from libs.path_utils import repo_root
 
 DATASET_PATH = os.path.join(repo_root(), "dataset/screw_detection_challenge")
@@ -44,22 +44,6 @@ def pointcloud_path(frame_id: str) -> str:  # pragma: no cover
     if not os.path.isfile(p):  # pragma: no cover
         raise FileNotFoundError(f"Point cloud file not found: {p}")
     return p
-
-
-@dataclass
-class Frame:  # pylint: disable=missing-class-docstring
-    id: str
-    image: np.ndarray
-    pointcloud: o3d.geometry.PointCloud
-    annotations: datumaro.components.annotation.Annotations
-
-    def battery_pack(self) -> str:
-        """Return the battery pack number."""
-        return self.id.split("/")[0]
-
-    def frame_name(self) -> str:
-        """Return the frame name."""
-        return self.id.split("/")[-1]
 
 
 class DatasetManager:
@@ -129,6 +113,14 @@ class DatasetManager:
         values are integers starting from 0, representing the index of the frame in the dataset.
         """
         return self._frame_ids
+
+    def frame_count(self) -> int:
+        """Return the number of frames in the dataset."""
+        return len(self._dataset)
+
+    def label_count(self) -> int:
+        """Return the number of labels in the dataset."""
+        return len(self._label_categories.items)
 
     @functools.lru_cache(maxsize=50)
     def label_name_mapper(self, annotation_label_idx: int) -> str:
