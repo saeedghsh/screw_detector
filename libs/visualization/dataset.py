@@ -39,7 +39,7 @@ def _text_font_args() -> dict:
     return {"fontFace": cv2.FONT_HERSHEY_SIMPLEX, "fontScale": 0.5, "thickness": 1}
 
 
-class DatasetVisualizer:  # pylint: disable=too-few-public-methods
+class Visualizer:  # pylint: disable=too-few-public-methods
     """Visualize images and point clouds from the dataset."""
 
     def __init__(self, config: SimpleNamespace, label_name_mapper: Callable):

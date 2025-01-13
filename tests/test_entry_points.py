@@ -6,13 +6,13 @@ from unittest import mock
 import pytest
 from datumaro.components.annotation import Label
 
-from entry_points.entry_dataset_visualizer import main
+from entry_points.entry_visualizer import main
 from libs.dataset.manager import Frame
 
 
 @pytest.fixture
 def dataset_manager_fixture():
-    with mock.patch("entry_points.entry_dataset_visualizer.DatasetManager") as mock_manager:
+    with mock.patch("entry_points.entry_visualizer.DatasetManager") as mock_manager:
         dataset_manager_instance = mock_manager.return_value
 
         # Mock frame IDs and frame method
@@ -36,7 +36,7 @@ def dataset_manager_fixture():
 
 @pytest.fixture
 def visualizer_fixture():
-    with mock.patch("entry_points.entry_dataset_visualizer.DatasetVisualizer") as mock_visualizer:
+    with mock.patch("entry_points.entry_visualizer.Visualizer") as mock_visualizer:
         yield mock_visualizer
 
 
