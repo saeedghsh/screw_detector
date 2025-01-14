@@ -54,7 +54,7 @@ def test_detector_abstract_method():
         # pylint: disable=abstract-method, missing-class-docstring, too-few-public-methods
         pass
 
-    test_detector = TestDetector()
+    test_detector = TestDetector({})
 
     image = np.zeros((100, 100, 3), dtype=np.uint8)
 

@@ -14,14 +14,6 @@ from libs.detection.detector import Detection, Detector
 class HoughCircleDetector(Detector):
     """Detect circles of a certain radius range."""
 
-    def __init__(self, configuration: dict):
-        self._configuration = configuration
-
-    @property
-    def configuration(self) -> dict:
-        """Return the configuration dictionary."""
-        return self._configuration
-
     def _hough_circles_args(self) -> dict:
         return {
             k: v

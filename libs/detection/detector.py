@@ -48,6 +48,14 @@ class Detection:
 class Detector:
     """Abstract base class for any screw detection approach."""
 
+    def __init__(self, configuration: dict):
+        self._configuration = configuration
+
+    @property
+    def configuration(self) -> dict:
+        """Return the configuration dictionary."""
+        return self._configuration
+
     def detect(self, image: np.ndarray) -> List[Detection]:
         """return a list of detections (bounding boxes, etc.)."""
         raise NotImplementedError("detect() must be implemented by subclass")
