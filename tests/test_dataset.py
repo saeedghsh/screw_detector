@@ -147,11 +147,12 @@ def test_load_images_single_file():
     ):
         images = load_images("mock_path/image.png")
         assert len(images) == 1
-        assert isinstance(images[0], np.ndarray)
+        assert "image" in images
+        assert isinstance(images["image"], np.ndarray)
 
 
 def test_load_images_directory():
-    mock_file_list = ["mock_path/image1.png", "mock_path/image2.png"]
+    mock_file_list = ["mock_path/image1.png", "mock_path/subdir/image2.png"]
     with (
         patch("os.path.exists", return_value=True),
         patch("os.path.isfile", return_value=False),
@@ -161,7 +162,9 @@ def test_load_images_directory():
     ):
         images = load_images("mock_path")
         assert len(images) == len(mock_file_list)
-        assert all(isinstance(img, np.ndarray) for img in images)
+        assert "image1" in images
+        assert "subdir_image2" in images
+        assert all(isinstance(img, np.ndarray) for img in images.values())
 
 
 def test_load_images_file_not_found():

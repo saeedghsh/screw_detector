@@ -128,7 +128,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
             cv2.destroyAllWindows()
 
         if self._config["save_output"]:
-            output_path_2d = f"{frame.battery_pack()}_{frame.frame_name()}_2d.png"
+            output_path_2d = f"{frame.file_name_from_id()}_2d.png"
             output_path = f"{self._config['output_dir']}/{output_path_2d}"
             cv2.imwrite(output_path, annotated_image)
 

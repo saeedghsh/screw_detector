@@ -116,7 +116,10 @@ def test_entry_detector_main(
 @mock.patch("entry_points.entry_detector.load_config")
 @mock.patch("entry_points.entry_detector.Visualizer")
 @mock.patch("entry_points.entry_detector.HoughCircleDetector")
-@mock.patch("entry_points.entry_detector.load_images", return_value=[mock.MagicMock()])
+@mock.patch(
+    "entry_points.entry_detector.load_images",
+    return_value={"image1": mock.MagicMock(), "subdir_image2": mock.MagicMock()},
+)
 def test_entry_detector_main_direct_mode(
     mock_load_images, mock_detector, mock_visualizer, mock_load_config
 ):

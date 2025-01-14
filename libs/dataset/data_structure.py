@@ -15,18 +15,14 @@ from libs.detection.detector import Detection
 @dataclass
 class Frame:  # pylint: disable=missing-class-docstring
     image: np.ndarray
-    id: Optional[str] = None
+    id: str
     pointcloud: Optional[o3d.geometry.PointCloud] = None
     annotations: Optional[datumaro.components.annotation.Annotations] = None
     detections: Optional[List[Detection]] = None
 
-    def battery_pack(self) -> Optional[str]:
-        """Return the battery pack number if ID is available."""
-        return self.id.split("/")[0] if self.id else None
-
-    def frame_name(self) -> Optional[str]:
-        """Return the frame name if ID is available."""
-        return self.id.split("/")[-1] if self.id else None
+    def file_name_from_id(self) -> str:
+        """Return the file name from the frame ID."""
+        return self.id.replace("/", "_") if self.id else ""
 
 
 @dataclass

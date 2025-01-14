@@ -200,28 +200,37 @@ def load_cached_split(file_path: str) -> SimpleNamespace:
     return SimpleNamespace(**split_data)
 
 
-def load_images(input_path: str) -> List[np.ndarray]:
+def load_images(input_path: str) -> Dict[str, np.ndarray]:
     """
-    Load images from a single file or a directory.
+    Load images from a single file or a directory and return them as a
+    dictionary. The keys are derived from the image paths relative to the
+    input_path, with file extensions removed and path separators replaced by
+    underscores (faking frame_id).
 
-    :param input_path: Path to an image file or a directory containing images.
-    :return: List of loaded images as numpy arrays.
-    :raises FileNotFoundError: If the input path does not exist or no images are found.
+    NOTE: this is used for loading images in the direct mode of the entry
+    detector (when not using dataset).
     """
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input path '{input_path}' does not exist.")
 
-    images = []
+    images = {}
+
     if os.path.isfile(input_path):
         image = cv2.imread(input_path)
         if image is None:
             raise ValueError(f"Failed to load image from '{input_path}'.")
-        images.append(image)
+
+        key = os.path.splitext(os.path.basename(input_path))[0]
+        images[key] = image
+
     elif os.path.isdir(input_path):
         for file_path in sorted(glob.glob(os.path.join(input_path, "**", "*.png"), recursive=True)):
             image = cv2.imread(file_path)
             if image is not None:
-                images.append(image)
+                # Create key by removing input_path, stripping extension, and replacing separators
+                relative_path = os.path.relpath(file_path, input_path)
+                key = os.path.splitext(relative_path)[0].replace(os.sep, "_")
+                images[key] = image
             else:
                 raise ValueError(f"Failed to load image from '{file_path}'.")  # pragma: no cover
     else:

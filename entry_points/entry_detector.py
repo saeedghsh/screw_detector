@@ -62,11 +62,12 @@ def _handle_dataset_mode(args: argparse.Namespace, detector: Detector):
 
 def _handle_direct_mode(args: argparse.Namespace, detector: Detector):
     images = load_images(args.input_path)
+
     visualizer = Visualizer(
         config=load_config("visualizer"),
         detection_label_mapper=Detection.label_name_mapper,
     )
-    frames = [Frame(image=image) for image in images]
+    frames = [Frame(image=image, id=key) for key, image in images.items()]
     for frame in frames:
         detections = detector.detect(frame.image)
         frame.detections = detections
