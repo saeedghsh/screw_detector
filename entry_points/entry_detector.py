@@ -2,7 +2,6 @@
 
 # pylint: disable=no-member, missing-function-docstring
 import argparse
-import logging
 import os
 import sys
 from typing import Sequence
@@ -16,7 +15,7 @@ from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
-logger = setup_logging(name_appendix="Detector", level=logging.DEBUG)
+logger = setup_logging(name_appendix="Detector")
 
 
 def _parse_args(argv: Sequence[str]) -> argparse.Namespace:

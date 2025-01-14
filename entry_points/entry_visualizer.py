@@ -2,7 +2,6 @@
 
 # pylint: disable=no-member
 
-import logging
 import os
 import sys
 from typing import Sequence
@@ -13,7 +12,7 @@ from libs.dataset.utils import dataset_stats
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
-logger = setup_logging(name_appendix="Visualizer", level=logging.DEBUG)
+logger = setup_logging(name_appendix="Visualizer")
 
 
 def main(_: Sequence[str]) -> int:
