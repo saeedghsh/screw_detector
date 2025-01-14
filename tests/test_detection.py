@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from libs.detection.detector import Detection, Detector
-from libs.detection.hough_circle_detector import HoughCircleDetector, hough_circle_detector_config
+from libs.detection.hough_circle_detector import HoughCircleDetector
 
 
 def test_detection_initialization():
@@ -63,19 +63,31 @@ def test_detector_abstract_method():
 
 
 def test_hough_circle_detector_initialization():
-    config = hough_circle_detector_config()
-    detector = HoughCircleDetector(**config)
-    assert detector.dp == config["dp"]
-    assert detector.min_dist == config["min_dist"]
-    assert detector.param1 == config["param1"]
-    assert detector.param2 == config["param2"]
-    assert detector.min_radius == config["min_radius"]
-    assert detector.max_radius == config["max_radius"]
+    config = {
+        "dp": 1.2,
+        "minDist": 20,
+        "param1": 100,
+        "param2": 30,
+        "minRadius": 10,
+        "maxRadius": 30,
+        "gaussianBlurKernelSize": 5,
+    }
+    detector = HoughCircleDetector(config)
+    assert detector.configuration == config
 
 
 @patch("cv2.HoughCircles", return_value=np.array([[[50, 50, 20]]]))
 def test_hough_circle_detector_detect(mock_hough_circles):
-    detector = HoughCircleDetector()
+    config = {
+        "dp": 1.2,
+        "minDist": 20,
+        "param1": 100,
+        "param2": 30,
+        "minRadius": 10,
+        "maxRadius": 30,
+        "gaussianBlurKernelSize": 5,
+    }
+    detector = HoughCircleDetector(config)
     image = np.zeros((100, 100, 3), dtype=np.uint8)
     detections = detector.detect(image)
     # Ensure HoughCircles was called

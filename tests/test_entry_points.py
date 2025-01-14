@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
+
 import os
 import sys
 from unittest import mock
@@ -82,12 +83,13 @@ def test_main_handles_empty_frame_ids(request: pytest.FixtureRequest):
     visualizer_instance.visualize_frame.assert_not_called()  # Ensure no frames were visualized
 
 
+@mock.patch("entry_points.entry_detector.load_config")
 @mock.patch("entry_points.entry_detector.load_cached_split")
 @mock.patch("entry_points.entry_detector.DatasetManager")
 @mock.patch("entry_points.entry_detector.Visualizer")
 @mock.patch("entry_points.entry_detector.HoughCircleDetector")
 def test_entry_detector_main(
-    mock_detector, mock_visualizer, mock_dataset_manager, mock_load_cached_split
+    mock_detector, mock_visualizer, mock_dataset_manager, mock_load_cached_split, mock_load_config
 ):
     # pylint: disable=unused-argument
     mock_cached_split = mock.MagicMock()
@@ -102,21 +104,21 @@ def test_entry_detector_main(
     ):
         result = entry_detector_main(sys.argv[1:])
         assert result == os.EX_OK
-
     mock_load_cached_split.assert_called_once_with("/path/to/split.json")
     mock_dataset_manager.assert_called_once()
     mock_visualizer.return_value.visualize_frame.assert_called_once_with(mock_frame)
 
 
-def test_entry_detector_main_direct_mode():
-    with (
-        mock.patch.object(
-            sys, "argv", ["entry_detector", "direct", "--input-path", "/path/to/images"]
-        ),
-        mock.patch("entry_points.entry_detector.load_images", return_value=[mock.MagicMock()]),
-        mock.patch("entry_points.entry_detector.HoughCircleDetector"),
-        mock.patch("entry_points.entry_detector.Visualizer"),
+@mock.patch("entry_points.entry_detector.load_config")
+@mock.patch("entry_points.entry_detector.Visualizer")
+@mock.patch("entry_points.entry_detector.HoughCircleDetector")
+@mock.patch("entry_points.entry_detector.load_images", return_value=[mock.MagicMock()])
+def test_entry_detector_main_direct_mode(
+    mock_load_images, mock_detector, mock_visualizer, mock_load_config
+):
+    # pylint: disable=unused-argument
+    with mock.patch.object(
+        sys, "argv", ["entry_detector", "direct", "--input-path", "/path/to/images"]
     ):
-
         result = entry_detector_main(sys.argv[1:])
         assert result == os.EX_OK

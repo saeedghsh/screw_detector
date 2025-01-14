@@ -8,11 +8,12 @@ import sys
 from types import SimpleNamespace
 from typing import Sequence
 
+from libs.config_reader import load_config
 from libs.dataset.data_structure import Frame
 from libs.dataset.manager import DATASET_PATH, DatasetManager
 from libs.dataset.utils import load_cached_split, load_images
 from libs.detection.detector import Detection, Detector
-from libs.detection.hough_circle_detector import HoughCircleDetector, hough_circle_detector_config
+from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
@@ -86,7 +87,8 @@ def _handle_direct_mode(args: argparse.Namespace, detector: Detector):
 
 def main(argv: Sequence[str]) -> int:
     args = _parse_args(argv)
-    circle_detector = HoughCircleDetector(**hough_circle_detector_config())
+    hough_circle_detector_config = load_config("hough_circle_detector")
+    circle_detector = HoughCircleDetector(hough_circle_detector_config)
     args.func(args, circle_detector)
     return os.EX_OK
 
