@@ -1,13 +1,20 @@
+# Configuration for cv2.HoughCircles
 # following config numbers come from simple statistical analysis of the dataset
 # expected_circle_radius = (85 / 2)
 # expected_circle_radius_min = expected_circle_radius - 15
 # expected_circle_radius_max = expected_circle_radius + 20
 # smallest_distance_bboxes_pairwise = 136.0588108135596
 # smallest_distance_bboxes_pairwise = int(smallest_distance_bboxes_pairwise * 0.95)
-dp = 1.2                      # default
-minDist = 129                 # smallest_distance_bboxes_pairwise
-param1 = 200                  # default
-param2 = 40                   # default
-minRadius = 27                # expected_circle_radius_min
-maxRadius = 62                # expected_circle_radius_max
+dp = 1.2       # default
+minDist = 129  # smallest_distance_bboxes_pairwise
+param1 = 200   # default
+param2 = 40    # default
+minRadius = 27 # expected_circle_radius_min
+maxRadius = 62 # expected_circle_radius_max
+
+# Configuration for preprocessing
 gaussian_blur_kernel_size = 5 # for preprocessing
+
+# even though there is no choice of label, we still specify it for consistency
+# with other detectors in the evaluation pipeline
+object_labels = ["screw_head"] # hough circle detector cannot recognize class

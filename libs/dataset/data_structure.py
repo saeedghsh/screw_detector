@@ -24,6 +24,14 @@ class Frame:  # pylint: disable=missing-class-docstring
         """Return the file name from the frame ID."""
         return self.id.replace("/", "_") if self.id else ""
 
+    def annotations_count(self) -> int:  # pragma: no cover
+        """Return the number of annotations."""
+        return len(self.annotations) if self.annotations else 0
+
+    def detections_count(self) -> int:  # pragma: no cover
+        """Return the number of detections."""
+        return len(self.detections) if self.detections else 0
+
 
 @dataclass
 class BoundingBox:  # pylint: disable=missing-class-docstring, missing-function-docstring

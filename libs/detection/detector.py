@@ -4,7 +4,7 @@
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 
-from typing import Any, List, Optional
+from typing import Any, List
 
 import numpy as np
 
@@ -18,15 +18,15 @@ class Detection:
         y: float,
         width: float,
         height: float,
+        label: int,
         confidence: float = 1.0,
-        label: Optional[int] = None,
     ):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.confidence = confidence
         self.label = label
+        self.confidence = confidence
 
     def __repr__(self):
         return (
@@ -39,10 +39,12 @@ class Detection:
         return self.x, self.y, self.width, self.height
 
     @staticmethod
-    def label_name_mapper(label: Optional[int]) -> str:
+    def label_name_mapper(label: int) -> str:
         """Map a label (index) to a human-readable name."""
         label_names = ["screw_head", "screw_hole"]
-        return label_names[label] if label is not None else "NO_LABEL"
+        if label >= len(label_names) or label < 0:
+            return "UNKNOWN"
+        return label_names[label]
 
 
 class Detector:

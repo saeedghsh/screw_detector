@@ -25,6 +25,19 @@ DATASET_PATH = os.path.join(repo_root(), "dataset/screw_detection_challenge")
 BATTERY_PACKS = [1, 2]
 
 
+def _filter_label_categories(
+    label_categories: LabelCategories,
+) -> LabelCategories:  # pragma: no cover
+    """Filter the label categories to keep only the labels of interest.
+    The annotation project in CVAT has more labels that we are not interested in."""
+    labels_to_keep = ["screw_head", "screw_hole"]
+    filtered = LabelCategories(attributes=label_categories.attributes)
+    for label in label_categories.items:
+        if label.name in labels_to_keep:
+            filtered.add(label.name, attributes=label.attributes)
+    return filtered
+
+
 def _annotations_file_path(battery_pack: int) -> str:
     """Return the path to the annotations file for the given battery pack."""
     return os.path.join(DATASET_PATH, f"battery_pack_{battery_pack}_annotations_datumaro.json")
@@ -56,7 +69,9 @@ class DatasetManager:
         ]
         self._datasets = datasets
         self._dataset = DatasetManager._merge_datasets(datasets)
-        self._label_categories = self._dataset.categories().get(datumaro.AnnotationType.label)
+        self._label_categories = _filter_label_categories(
+            self._dataset.categories().get(datumaro.AnnotationType.label)
+        )
         self._frame_ids = {frame.id: idx for idx, frame in enumerate(self._dataset)}
         self.__post_init__()
 
@@ -114,17 +129,19 @@ class DatasetManager:
         """
         return self._frame_ids
 
-    def frame_count(self) -> int:
+    def frame_count(self) -> int:  # pragma: no cover
         """Return the number of frames in the dataset."""
         return len(self._dataset)
 
-    def label_count(self) -> int:
+    def label_count(self) -> int:  # pragma: no cover
         """Return the number of labels in the dataset."""
         return len(self._label_categories.items)
 
     @functools.lru_cache(maxsize=50)
-    def label_name_mapper(self, annotation_label_idx: int) -> str:
+    def label_name_mapper(self, annotation_label_idx: int) -> str:  # pragma: no cover
         """Return the name of the label with the given index."""
+        if annotation_label_idx < 0 or annotation_label_idx >= len(self._label_categories.items):
+            return "UNKNOWN"
         return self._label_categories.items[annotation_label_idx].name
 
     @staticmethod

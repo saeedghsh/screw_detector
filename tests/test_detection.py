@@ -32,21 +32,17 @@ def test_detection_repr():
 
 
 def test_detection_get_bbox():
-    detection = Detection(10, 20, 30, 40)
+    detection = Detection(10, 20, 30, 40, confidence=0.95, label=1)
     bbox = detection.get_bbox()
     assert bbox == (10, 20, 30, 40)
 
 
 @pytest.mark.parametrize(
     "label, expected_name",
-    [(0, "screw_head"), (1, "screw_hole"), (None, "NO_LABEL"), (99, IndexError)],
+    [(0, "screw_head"), (1, "screw_hole"), (99, "UNKNOWN")],
 )
 def test_detection_label_name_mapper(label, expected_name):
-    if label == 99:
-        with pytest.raises(IndexError):
-            Detection.label_name_mapper(label)
-    else:
-        assert Detection.label_name_mapper(label) == expected_name
+    assert Detection.label_name_mapper(label) == expected_name
 
 
 def test_detector_abstract_method():
@@ -71,6 +67,7 @@ def test_hough_circle_detector_initialization():
         "minRadius": 10,
         "maxRadius": 30,
         "gaussian_blur_kernel_size": 5,
+        "object_labels": ["screw_head"],
     }
     detector = HoughCircleDetector(config)
     assert detector.configuration == config
@@ -86,6 +83,7 @@ def test_hough_circle_detector_detect(mock_hough_circles):
         "minRadius": 10,
         "maxRadius": 30,
         "gaussian_blur_kernel_size": 5,
+        "object_labels": ["screw_head"],
     }
     detector = HoughCircleDetector(config)
     image = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -101,4 +99,4 @@ def test_hough_circle_detector_detect(mock_hough_circles):
     assert detection.width == 40  # 2 * 20
     assert detection.height == 40  # 2 * 20
     assert detection.confidence == 1.0
-    assert detection.label is None
+    assert detection.label == 0

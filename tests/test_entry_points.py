@@ -1,13 +1,16 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
 
+import json
 import os
 import sys
+import tempfile
 from unittest import mock
 
 import pytest
 from pytest import FixtureRequest
 
 from entry_points.entry_detector import main as entry_detector_main
+from entry_points.entry_evaluator import main as entry_evaluator_main
 from entry_points.entry_visualizer import main as entry_visualizer_main
 from libs.dataset.data_structure import Frame
 
@@ -130,3 +133,45 @@ def test_entry_detector_main_direct_mode(
     ):
         result = entry_detector_main(sys.argv[1:])
         assert result == os.EX_OK
+
+
+@mock.patch("entry_points.entry_evaluator.load_config")
+@mock.patch("entry_points.entry_evaluator.load_cached_split")
+@mock.patch("entry_points.entry_evaluator.DatasetManager")
+@mock.patch("entry_points.entry_evaluator.HoughCircleDetector")
+@mock.patch("entry_points.entry_evaluator.Evaluator")
+def test_entry_evaluator_main(
+    mock_evaluator, mock_detector, mock_dataset_manager, mock_load_cached_split, mock_load_config
+):
+    mock_load_config.side_effect = [{"param1": "value1"}, {"param2": "value2"}]
+
+    mock_cached_split = mock.MagicMock()
+    mock_cached_split.test_frame_ids = ["mock/frame/1"]
+    mock_load_cached_split.return_value = mock_cached_split
+
+    mock_frame = mock.MagicMock()
+    mock_dataset_manager.return_value.frame.return_value = mock_frame
+
+    with tempfile.TemporaryDirectory() as temp_cache_dir:
+        sample_split_path = f"{temp_cache_dir}/sample_split.json"
+        with open(sample_split_path, "w", encoding="utf-8") as split_file:
+            json.dump({"test_frame_ids": ["mock/frame/1"]}, split_file)
+
+        with (
+            mock.patch("entry_points.entry_evaluator.CACHE_DIR", temp_cache_dir),
+            mock.patch.object(sys, "argv", ["entry_evaluator"]),
+        ):
+            result = entry_evaluator_main(sys.argv[1:])
+            assert result == os.EX_OK
+
+    mock_dataset_manager.assert_called_once()
+    mock_load_cached_split.assert_called_once_with(sample_split_path)
+    mock_detector.assert_called_once()
+    mock_evaluator.assert_called_once()
+
+    evaluator_instance = mock_evaluator.return_value
+    evaluator_instance.evaluate.assert_called_once_with(
+        detector=mock_detector.return_value,
+        dataset_manager=mock_dataset_manager.return_value,
+        test_frames=mock_cached_split.test_frame_ids,
+    )

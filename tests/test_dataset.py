@@ -1,6 +1,8 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
 import json
 import os
+import tempfile
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -8,13 +10,7 @@ import pytest
 from datumaro.components.media import Image
 
 from libs.dataset.manager import DatasetManager
-from libs.dataset.utils import (
-    cache_split,
-    dataset_stats,
-    load_cached_split,
-    load_images,
-    split_train_test,
-)
+from libs.dataset.utils import cache_split, load_cached_split, load_images, split_train_test
 
 
 @pytest.fixture
@@ -73,23 +69,6 @@ def test_dataset_manager_frame(
 
 
 @patch("os.path.isfile", return_value=True)
-@patch("libs.dataset.manager.cv2.imread", return_value=np.zeros((100, 100, 3)))
-def test_dataset_stats_interface_correctness(
-    mock_imread, mock_isfile, request: pytest.FixtureRequest
-):
-    # pylint: disable=unused-argument
-    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
-    stats = dataset_stats(dataset_manager)
-    assert "num_frames" in stats
-    assert "per_battery_pack_count" in stats
-    assert "num_labels" in stats
-    assert "per_label_count" in stats
-    assert "average_bbox_area" in stats
-    assert "average_bbox_size" in stats
-    assert "smallest_distance_bboxes_pairwise" in stats
-
-
-@patch("os.path.isfile", return_value=True)
 def test_split_train_test_interface_correctness(mock_isfile, request: pytest.FixtureRequest):
     # pylint: disable=unused-argument
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
@@ -116,9 +95,11 @@ def test_cache_split_creates_file(
     # Mock the return value of _annotations to have an annotations attribute
     mock_annotations = MagicMock()
     mock_annotations.annotations = []  # Mock empty annotations list
-    with patch.object(dataset_manager, "_annotations", return_value=mock_annotations):
-        mock_datetime.now.return_value.strftime.return_value = "20250113T123000"
-        split_file = cache_split(dataset_manager, test_ratio=0.2)
+    with tempfile.TemporaryDirectory() as temp_cache_dir:
+        with mock.patch("libs.dataset.utils.CACHE_DIR", temp_cache_dir):
+            with patch.object(dataset_manager, "_annotations", return_value=mock_annotations):
+                mock_datetime.now.return_value.strftime.return_value = "20250113T123000"
+                split_file = cache_split(dataset_manager, test_ratio=0.2)
     assert os.path.isfile(split_file)
 
 

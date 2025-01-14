@@ -32,6 +32,10 @@ class HoughCircleDetector(Detector):
             self._preprocess_image(image), cv2.HOUGH_GRADIENT, **self._hough_circles_args()
         )
         detections = []
+        object_labels = self.configuration["object_labels"]
+        if object_labels != ["screw_head"]:  # pragma: no cover
+            raise ValueError("HoughCircleDetector can only assume one class: screw_head")
+
         if circles is not None:
             circles = np.round(circles[0, :]).astype("int")
             for x, y, r in circles:
@@ -46,7 +50,7 @@ class HoughCircleDetector(Detector):
                         width=width,
                         height=height,
                         confidence=1.0,
-                        label=None,  # since its only detection, and not classification
+                        label=0,
                     )
                 )
         return detections

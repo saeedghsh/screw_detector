@@ -20,7 +20,8 @@ from libs.detection.detector import Detection
 
 
 def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
-    """Return a list of colors for drawing annotations."""
+    """Return a list of colors for drawing annotations.
+    If the index is not provided, return the last color in the list."""
     colors = {
         "Blue": (255, 0, 0),  # Blue
         "Green": (0, 255, 0),  # Green

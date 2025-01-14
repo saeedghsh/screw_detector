@@ -2,7 +2,6 @@
 store the result into a file for consistent evaluation."""
 
 # pylint: disable=no-member
-# pragma: no cover
 import os
 import sys
 from typing import Sequence
@@ -15,7 +14,7 @@ from libs.logger import setup_logging
 logger = setup_logging(name_appendix="data-splitter")
 
 
-def main(_: Sequence[str]) -> int:
+def main(_: Sequence[str]) -> int:  # pragma: no cover
     """Main entry point for splitting and caching the dataset."""
     dataset_manager = DatasetManager()
     dataset_split_config = load_config("dataset_split")

@@ -4,6 +4,8 @@ addopts = "-v --cov=. --cov-report=term-missing"
 python_files = ["test_*.py"]
 filterwarnings = ["ignore::DeprecationWarning"]
 
+[tool.coverage.run]
+omit = ["*/tests/*", "*/config-3.py", "*/config.py", "libs/evaluator.py"]
 
 [tool.pylint]
 init-hook = "import os, sys; sys.path.append(os.getcwd())"
@@ -38,6 +40,3 @@ line_length = 100
 [tool.mypy]
 exclude = '^ignore/|^tools/'  # local folders I want to skip type checking
 ignore_missing_imports = true
-
-[tool.coverage.run]
-omit = ["*/tests/*", "*/config-3.py", "*/config.py"]

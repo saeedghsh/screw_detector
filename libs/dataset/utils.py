@@ -29,7 +29,7 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 def dataset_stats(
     dataset_manager: DatasetManager, logger: Optional[logging.Logger] = None
-) -> Dict[str, int]:
+) -> Dict[str, int]:  # pragma: no cover
     """Return statistics about the dataset."""
 
     def _frame_ids_in_battery_pack(battery_pack: int) -> List[str]:

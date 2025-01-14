@@ -1,0 +1,2 @@
+iou_threshold = 0.5
+results_dir_path = "evaluation_logs"
