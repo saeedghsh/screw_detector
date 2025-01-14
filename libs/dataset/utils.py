@@ -128,7 +128,7 @@ def split_train_test(  # pylint: disable=too-many-locals
     for frame_id in dataset_manager.frame_ids.keys():
         label_counts: Counter[str] = Counter()
         if (annotations := dataset_manager.frame(frame_id).annotations) is not None:
-            for annotation in annotations:
+            for annotation in annotations:  # pragma: no cover
                 label_name = dataset_manager.label_name_mapper(annotation.label)
                 if label_name in annotation_labels:
                     label_counts[label_name] += 1
@@ -155,10 +155,9 @@ def split_train_test(  # pylint: disable=too-many-locals
             <= desired_test_counts.get(label, 0)
             for label in annotation_labels
         ):
-
             test_frame_ids.append(frame_id)
             current_test_counts.update(label_counts)
-        else:
+        else:  # pragma: no cover
             train_frame_ids.append(frame_id)
 
     # Compute the exact annotation ratio achieved

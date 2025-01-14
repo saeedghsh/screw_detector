@@ -49,7 +49,9 @@ def visualizer_fixture():
         yield mock_visualizer
 
 
-def test_main_executes_visualization(request: pytest.FixtureRequest):
+@mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
+def test_main_executes_visualization(mock_load_config, request: pytest.FixtureRequest):
+    # pylint: disable=unused-argument
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     visualizer = request.getfixturevalue("visualizer_fixture")
 
@@ -65,7 +67,9 @@ def test_main_executes_visualization(request: pytest.FixtureRequest):
     )
 
 
-def test_main_handles_empty_frame_ids(request: pytest.FixtureRequest):
+@mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
+def test_main_handles_empty_frame_ids(mock_load_config, request: pytest.FixtureRequest):
+    # pylint: disable=unused-argument
     """Test the edge case where frame_ids is empty to ensure 100% coverage."""
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     visualizer = request.getfixturevalue("visualizer_fixture")

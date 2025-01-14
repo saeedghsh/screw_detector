@@ -5,7 +5,6 @@ import argparse
 import logging
 import os
 import sys
-from types import SimpleNamespace
 from typing import Sequence
 
 from libs.config_reader import load_config
@@ -48,21 +47,11 @@ def _parse_args(argv: Sequence[str]) -> argparse.Namespace:
     return args
 
 
-VISUALIZER_CONFIG = SimpleNamespace(
-    image_resize_factor=0.5,
-    visualize_2d=True,
-    visualize_3d=False,
-    show_output=True,
-    save_output=False,
-    output_dir="output",
-)
-
-
 def _handle_dataset_mode(args: argparse.Namespace, detector: Detector):
     dataset_manager = DatasetManager()
     cached_split = load_cached_split(args.cached_split_path)
     visualizer = Visualizer(
-        config=VISUALIZER_CONFIG,
+        config=load_config("visualizer"),
         annotation_label_mapper=dataset_manager.label_name_mapper,
         detection_label_mapper=Detection.label_name_mapper,
     )
@@ -75,7 +64,7 @@ def _handle_dataset_mode(args: argparse.Namespace, detector: Detector):
 def _handle_direct_mode(args: argparse.Namespace, detector: Detector):
     images = load_images(args.input_path)
     visualizer = Visualizer(
-        config=VISUALIZER_CONFIG,
+        config=load_config("visualizer"),
         detection_label_mapper=Detection.label_name_mapper,
     )
     frames = [Frame(image=image) for image in images]

@@ -70,7 +70,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
 
     def __init__(
         self,
-        config: SimpleNamespace,
+        config: dict,
         annotation_label_mapper: Callable = str,
         detection_label_mapper: Callable = str,
     ):
@@ -80,12 +80,12 @@ class Visualizer:  # pylint: disable=too-few-public-methods
 
     def _resize_image(self, image: np.ndarray) -> np.ndarray:
         """Resize the image according to the configuration."""
-        if self._config.image_resize_factor != 1.0:
+        if self._config["image_resize_factor"] != 1.0:
             return cv2.resize(
                 image,
                 (0, 0),
-                fx=self._config.image_resize_factor,
-                fy=self._config.image_resize_factor,
+                fx=self._config["image_resize_factor"],
+                fy=self._config["image_resize_factor"],
             )
         return image
 
@@ -94,7 +94,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
         for annotation in annotations:
             color = _colors(annotation.label)
             label_name = self._annotation_label_mapper(annotation.label)
-            bbox = BoundingBox(*annotation.get_bbox()).resize(self._config.image_resize_factor)
+            bbox = BoundingBox(*annotation.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=True)
             label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
             _write_label_with_prefix(annotated_image, "A", label_name, label_coordinates, color)
@@ -104,14 +104,14 @@ class Visualizer:  # pylint: disable=too-few-public-methods
         for detection in detections:
             color = _colors(detection.label)
             label_name = self._detection_label_mapper(detection.label)
-            bbox = BoundingBox(*detection.get_bbox()).resize(self._config.image_resize_factor)
+            bbox = BoundingBox(*detection.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=False)
             label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
             _write_label_with_prefix(annotated_image, "D", label_name, label_coordinates, color)
 
     def _visualize_3d(self, frame: Frame):
         """Visualize a point cloud."""
-        if self._config.show_output:
+        if self._config["show_output"]:
             o3d.visualization.draw_geometries([frame.pointcloud], window_name="Point Cloud")
 
     def _visualize_2d(self, frame: Frame):
@@ -122,19 +122,19 @@ class Visualizer:  # pylint: disable=too-few-public-methods
         if frame.detections is not None:
             self._draw_detections(annotated_image, frame.detections)
 
-        if self._config.show_output:
+        if self._config["show_output"]:
             cv2.imshow("Annotated Image", annotated_image)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-        if self._config.save_output:
+        if self._config["save_output"]:
             output_path_2d = f"{frame.battery_pack()}_{frame.frame_name()}_2d.png"
-            output_path = f"{self._config.output_dir}/{output_path_2d}"
+            output_path = f"{self._config['output_dir']}/{output_path_2d}"
             cv2.imwrite(output_path, annotated_image)
 
     def visualize_frame(self, frame: Frame):
         """Visualize a frame with its image, point cloud, and annotations."""
-        if self._config.visualize_3d:
+        if self._config["visualize_3d"]:
             self._visualize_3d(frame)
-        if self._config.visualize_2d:
+        if self._config["visualize_2d"]:
             self._visualize_2d(frame)

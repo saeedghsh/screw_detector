@@ -5,25 +5,15 @@
 import logging
 import os
 import sys
-from types import SimpleNamespace
 from typing import Sequence
 
+from libs.config_reader import load_config
 from libs.dataset.manager import DatasetManager
-from libs.dataset.utils import dataset_stats, split_train_test
+from libs.dataset.utils import dataset_stats
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
 logger = setup_logging(name_appendix="Visualizer", level=logging.DEBUG)
-
-
-CONFIG = SimpleNamespace(
-    image_resize_factor=0.5,
-    visualize_2d=True,
-    visualize_3d=False,
-    show_output=False,
-    save_output=True,
-    output_dir="output",
-)
 
 
 def main(_: Sequence[str]) -> int:
@@ -31,9 +21,8 @@ def main(_: Sequence[str]) -> int:
     dataset_manager = DatasetManager()
     dataset_stats(dataset_manager, logger)
 
-    __ = split_train_test(dataset_manager, test_ratio=0.2)
-
-    visualizer = Visualizer(CONFIG, dataset_manager.label_name_mapper)
+    visualizer_config = load_config("visualizer")
+    visualizer = Visualizer(visualizer_config, dataset_manager.label_name_mapper)
 
     for frame_id in dataset_manager.frame_ids.keys():
         frame = dataset_manager.frame(frame_id)

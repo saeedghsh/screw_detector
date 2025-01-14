@@ -7,6 +7,7 @@ import os
 import sys
 from typing import Sequence
 
+from libs.config_reader import load_config
 from libs.dataset.manager import DatasetManager
 from libs.dataset.utils import cache_split
 from libs.logger import setup_logging
@@ -17,7 +18,8 @@ logger = setup_logging(name_appendix="data-splitter")
 def main(_: Sequence[str]) -> int:
     """Main entry point for splitting and caching the dataset."""
     dataset_manager = DatasetManager()
-    cache_split(dataset_manager, 0.2)
+    dataset_split_config = load_config("dataset_split")
+    cache_split(dataset_manager, dataset_split_config["test_split_ratio"])
     return os.EX_OK
 
 

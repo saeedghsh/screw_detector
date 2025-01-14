@@ -1,5 +1,4 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
-from types import SimpleNamespace
 from unittest import mock
 
 import numpy as np
@@ -13,14 +12,14 @@ from libs.visualization import Visualizer, _draw_bbox
 
 @pytest.fixture
 def visualizer_fixture():
-    config = SimpleNamespace(
-        image_resize_factor=0.5,
-        visualize_2d=True,
-        visualize_3d=False,
-        show_output=True,
-        save_output=True,
-        output_dir="output",
-    )
+    config = {
+        "image_resize_factor": 0.5,
+        "visualize_2d": True,
+        "visualize_3d": False,
+        "show_output": True,
+        "save_output": True,
+        "output_dir": "output",
+    }
     label_name_mapper = mock.MagicMock(return_value="mock_label")
     return Visualizer(config, label_name_mapper)
 
@@ -37,11 +36,11 @@ def test_visualizer_resizes_image(request: pytest.FixtureRequest):
 
 
 def test_visualizer_visualize_frame_no_visualization():
-    config = SimpleNamespace(
-        image_resize_factor=1.0,
-        visualize_2d=False,
-        visualize_3d=False,
-    )
+    config = {
+        "image_resize_factor": 1.0,
+        "visualize_2d": False,
+        "visualize_3d": False,
+    }
     label_name_mapper = mock.MagicMock(return_value="mock_label")
     visualizer = Visualizer(config, label_name_mapper)
     image = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -52,14 +51,14 @@ def test_visualizer_visualize_frame_no_visualization():
 
 
 def test_visualizer_visualize_frame():
-    config = SimpleNamespace(
-        image_resize_factor=1.0,
-        visualize_2d=True,
-        visualize_3d=False,
-        show_output=True,
-        save_output=True,
-        output_dir="output",
-    )
+    config = {
+        "image_resize_factor": 1.0,
+        "visualize_2d": True,
+        "visualize_3d": False,
+        "show_output": True,
+        "save_output": True,
+        "output_dir": "output",
+    }
     label_name_mapper = mock.MagicMock(return_value="mock_label")
     visualizer = Visualizer(
         config, annotation_label_mapper=label_name_mapper, detection_label_mapper=label_name_mapper
@@ -97,14 +96,14 @@ def test_visualizer_visualize_frame():
 
 
 def test_visualizer_visualize_3d():
-    config = SimpleNamespace(
-        image_resize_factor=1.0,
-        visualize_2d=False,
-        visualize_3d=True,
-        show_output=True,
-        save_output=True,
-        output_dir="output",
-    )
+    config = {
+        "image_resize_factor": 1.0,
+        "visualize_2d": False,
+        "visualize_3d": True,
+        "show_output": True,
+        "save_output": True,
+        "output_dir": "output",
+    }
     label_name_mapper = mock.MagicMock(return_value="mock_label")
     visualizer = Visualizer(config, label_name_mapper)
     pointcloud = o3d.geometry.PointCloud()
