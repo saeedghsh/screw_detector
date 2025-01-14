@@ -195,16 +195,9 @@ def load_cached_split(file_path: str) -> SimpleNamespace:
     """Load a cached split from a given file path."""
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Cached split file not found: {file_path}")  # pragma: no cover
-
     with open(file_path, "r", encoding="utf-8") as file:
         split_data = json.load(file)
-
-    return SimpleNamespace(
-        train_frame_ids=split_data["train_frame_ids"],
-        test_frame_ids=split_data["test_frame_ids"],
-        split_ratio=split_data["split_ratio"],
-        timestamp=split_data["timestamp"],
-    )
+    return SimpleNamespace(**split_data)
 
 
 def load_images(input_path: str) -> List[np.ndarray]:
