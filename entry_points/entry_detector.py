@@ -27,7 +27,7 @@ def _parse_args(argv: Sequence[str]) -> argparse.Namespace:
     dataset_parser.add_argument(
         "--cached-split-path",
         type=str,
-        default=f"{DATASET_PATH}/data_split_cache/20250113T000436_0.2_split.json",
+        default=f"{DATASET_PATH}/data_split_cache/20250112T232216_0.2_split.json",
         help="Path to cached split.",
     )
     dataset_parser.set_defaults(func=_handle_dataset_mode)
