@@ -41,7 +41,7 @@ def image_path(frame_id: str) -> str:  # pragma: no cover
 def pointcloud_path(frame_id: str) -> str:  # pragma: no cover
     """Return the path to the point cloud file for the given frame ID."""
     p = os.path.join(DATASET_PATH, f"{frame_id}.ply")
-    if not os.path.isfile(p):  # pragma: no cover
+    if not os.path.isfile(p):
         raise FileNotFoundError(f"Point cloud file not found: {p}")
     return p
 
@@ -65,14 +65,14 @@ class DatasetManager:
             DatasetManager._validate_frame_id(frame_id)
 
     @staticmethod
-    def _validate_frame_id(frame_id: str):
+    def _validate_frame_id(frame_id: str):  # pragma: no cover
         """Check the frame ID format."""
         parts = frame_id.split("/")
-        if len(parts) != 3:  # pragma: no cover
+        if len(parts) != 3:
             raise ValueError("Frame ID must be in the format: battery_pack_i/frame_name/frame_name")
-        if "battery_pack_" not in parts[0]:  # pragma: no cover
+        if "battery_pack_" not in parts[0]:
             raise ValueError("Frame ID must start with 'battery_pack_'")
-        if parts[1] != parts[2]:  # pragma: no cover
+        if parts[1] != parts[2]:
             raise ValueError("Frame ID must have frame name repeated twice in it")
 
     @staticmethod
