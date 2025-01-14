@@ -31,7 +31,7 @@ class HoughCircleDetector(Detector):
 
     def _preprocess_image(self, image: np.ndarray) -> np.ndarray:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if len(image.shape) == 3 else image
-        kernel_size = self._configuration["gaussianBlurKernelSize"]
+        kernel_size = self._configuration["gaussian_blur_kernel_size"]
         return cv2.GaussianBlur(gray, (kernel_size, kernel_size), 0)
 
     def detect(self, image: np.ndarray) -> List[Detection]:

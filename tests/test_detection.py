@@ -70,7 +70,7 @@ def test_hough_circle_detector_initialization():
         "param2": 30,
         "minRadius": 10,
         "maxRadius": 30,
-        "gaussianBlurKernelSize": 5,
+        "gaussian_blur_kernel_size": 5,
     }
     detector = HoughCircleDetector(config)
     assert detector.configuration == config
@@ -85,7 +85,7 @@ def test_hough_circle_detector_detect(mock_hough_circles):
         "param2": 30,
         "minRadius": 10,
         "maxRadius": 30,
-        "gaussianBlurKernelSize": 5,
+        "gaussian_blur_kernel_size": 5,
     }
     detector = HoughCircleDetector(config)
     image = np.zeros((100, 100, 3), dtype=np.uint8)
