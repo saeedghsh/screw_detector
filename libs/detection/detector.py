@@ -4,7 +4,7 @@
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class Detection:
             f"width={self.width}, height={self.height}, confidence={self.confidence})"
         )
 
-    def get_bbox(self) -> Tuple[float, float, float, float]:
+    def get_bbox(self) -> Any:
         """Return the bounding box as a tuple (x, y, w, h)."""
         return self.x, self.y, self.width, self.height
 

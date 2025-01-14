@@ -5,6 +5,7 @@ import sys
 from unittest import mock
 
 import pytest
+from pytest import FixtureRequest
 
 from entry_points.entry_detector import main as entry_detector_main
 from entry_points.entry_visualizer import main as entry_visualizer_main
@@ -50,7 +51,7 @@ def visualizer_fixture():
 
 
 @mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
-def test_main_executes_visualization(mock_load_config, request: pytest.FixtureRequest):
+def test_main_executes_visualization(mock_load_config, request: FixtureRequest):
     # pylint: disable=unused-argument
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     visualizer = request.getfixturevalue("visualizer_fixture")
@@ -68,7 +69,7 @@ def test_main_executes_visualization(mock_load_config, request: pytest.FixtureRe
 
 
 @mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
-def test_main_handles_empty_frame_ids(mock_load_config, request: pytest.FixtureRequest):
+def test_main_handles_empty_frame_ids(mock_load_config, request: FixtureRequest):
     # pylint: disable=unused-argument
     """Test the edge case where frame_ids is empty to ensure 100% coverage."""
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")

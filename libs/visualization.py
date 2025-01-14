@@ -13,9 +13,10 @@ from typing import Callable, List, Optional, Tuple
 import cv2
 import numpy as np
 import open3d as o3d
-from datumaro.components.annotation import Annotation
+from datumaro.components.annotation import Annotations
 
 from libs.dataset.data_structure import BoundingBox, Frame
+from libs.detection.detector import Detection
 
 
 def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
@@ -89,7 +90,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
             )
         return image
 
-    def _draw_annotations(self, annotated_image: np.ndarray, annotations: List[Annotation]):
+    def _draw_annotations(self, annotated_image: np.ndarray, annotations: Annotations):
         """Draw annotations as filled rectangles"""
         for annotation in annotations:
             color = _colors(annotation.label)
@@ -99,7 +100,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
             label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
             _write_label_with_prefix(annotated_image, "A", label_name, label_coordinates, color)
 
-    def _draw_detections(self, annotated_image: np.ndarray, detections: List[Annotation]):
+    def _draw_detections(self, annotated_image: np.ndarray, detections: List[Detection]):
         """Draw detections as empty rectangles."""
         for detection in detections:
             color = _colors(detection.label)
