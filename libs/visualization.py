@@ -16,7 +16,7 @@ import open3d as o3d
 from datumaro.components.annotation import Annotations
 
 from libs.dataset.data_structure import BoundingBox, Frame
-from libs.detection.detector import Detection
+from libs.detection.detector_2d import Detection2D
 
 
 def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
@@ -101,7 +101,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
             label_coordinates = SimpleNamespace(x=bbox.x, y=bbox.y)
             _write_label_with_prefix(annotated_image, "A", label_name, label_coordinates, color)
 
-    def _draw_detections(self, annotated_image: np.ndarray, detections: List[Detection]):
+    def _draw_detections(self, annotated_image: np.ndarray, detections: List[Detection2D]):
         """Draw detections as empty rectangles."""
         for detection in detections:
             color = _colors(detection.label)

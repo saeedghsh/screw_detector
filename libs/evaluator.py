@@ -11,10 +11,10 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 
 from libs.dataset.data_structure import Frame
 from libs.dataset.manager import DatasetManager
-from libs.detection.detector import Detection, Detector
+from libs.detection.detector_2d import Detection2D, Detector2D
 
 
-def compute_iou(ann: Annotation, det: Detection) -> float:  # pylint: disable=too-many-locals
+def compute_iou(ann: Annotation, det: Detection2D) -> float:  # pylint: disable=too-many-locals
     """Compute the Intersection over Union (IoU) of two bounding boxes."""
     ann_x, ann_y, ann_width, ann_height = ann.get_bbox()
     x1_min, y1_min, x1_max, y1_max = ann_x, ann_y, ann_x + ann_width, ann_y + ann_height
@@ -46,7 +46,7 @@ def match_detections(
     return matched
 
 
-def compute_distance(ann: Annotation, det: Detection) -> float:
+def compute_distance(ann: Annotation, det: Detection2D) -> float:
     """Compute the Euclidean distance between the centers of two bounding boxes."""
     ann_x, ann_y, ann_width, ann_height = ann.get_bbox()
     return np.linalg.norm(
@@ -64,7 +64,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
         self._config = config
 
     def evaluate(
-        self, detector: Detector, dataset_manager: DatasetManager, test_frames: List[str]
+        self, detector: Detector2D, dataset_manager: DatasetManager, test_frames: List[str]
     ) -> Dict[str, Any]:
         # pylint: disable=too-many-locals
         """Evaluate a detector on a dataset."""
@@ -86,7 +86,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
                 frame,
                 self._config["iou_threshold"],
                 dataset_manager.label_name_mapper,
-                Detection.label_name_mapper,
+                Detection2D.label_name_mapper,
             )
 
             # Collect true positives, false positives, and false negatives

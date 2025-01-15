@@ -9,7 +9,7 @@ import datumaro
 import numpy as np
 import open3d as o3d
 
-from libs.detection.detector import Detection
+from libs.detection.detector_2d import Detection2D
 
 
 @dataclass
@@ -18,7 +18,7 @@ class Frame:  # pylint: disable=missing-class-docstring
     id: str
     pointcloud: Optional[o3d.geometry.PointCloud] = None
     annotations: Optional[datumaro.components.annotation.Annotations] = None
-    detections: Optional[List[Detection]] = None
+    detections: Optional[List[Detection2D]] = None
 
     def file_name_from_id(self) -> str:
         """Return the file name from the frame ID."""

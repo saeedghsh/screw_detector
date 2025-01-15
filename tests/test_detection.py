@@ -5,12 +5,12 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from libs.detection.detector import Detection, Detector
+from libs.detection.detector_2d import Detection2D, Detector2D
 from libs.detection.hough_circle_detector import HoughCircleDetector
 
 
 def test_detection_initialization():
-    detection = Detection(10, 20, 30, 40, confidence=0.95, label=1)
+    detection = Detection2D(10, 20, 30, 40, confidence=0.95, label=1)
     assert detection.x == 10
     assert detection.y == 20
     assert detection.width == 30
@@ -20,9 +20,9 @@ def test_detection_initialization():
 
 
 def test_detection_repr():
-    detection = Detection(10, 20, 30, 40, confidence=0.95, label=1)
+    detection = Detection2D(10, 20, 30, 40, confidence=0.95, label=1)
     repr_str = repr(detection)
-    assert "Detection" in repr_str
+    assert "Detection2D" in repr_str
     assert "label=1" in repr_str
     assert "x=10" in repr_str
     assert "y=20" in repr_str
@@ -32,7 +32,7 @@ def test_detection_repr():
 
 
 def test_detection_get_bbox():
-    detection = Detection(10, 20, 30, 40, confidence=0.95, label=1)
+    detection = Detection2D(10, 20, 30, 40, confidence=0.95, label=1)
     bbox = detection.get_bbox()
     assert bbox == (10, 20, 30, 40)
 
@@ -42,11 +42,11 @@ def test_detection_get_bbox():
     [(0, "screw_head"), (1, "screw_hole"), (99, "UNKNOWN")],
 )
 def test_detection_label_name_mapper(label, expected_name):
-    assert Detection.label_name_mapper(label) == expected_name
+    assert Detection2D.label_name_mapper(label) == expected_name
 
 
 def test_detector_abstract_method():
-    class TestDetector(Detector):
+    class TestDetector(Detector2D):
         # pylint: disable=abstract-method, missing-class-docstring, too-few-public-methods
         pass
 
@@ -93,7 +93,7 @@ def test_hough_circle_detector_detect(mock_hough_circles):
     # Check the output detections
     assert len(detections) == 1
     detection = detections[0]
-    assert isinstance(detection, Detection)
+    assert isinstance(detection, Detection2D)
     assert detection.x == 30  # 50 - 20
     assert detection.y == 30  # 50 - 20
     assert detection.width == 40  # 2 * 20

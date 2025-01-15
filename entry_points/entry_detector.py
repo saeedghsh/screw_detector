@@ -10,12 +10,12 @@ from libs.config_reader import load_config
 from libs.dataset.data_structure import Frame
 from libs.dataset.manager import DATASET_PATH, DatasetManager
 from libs.dataset.utils import load_cached_split, load_images
-from libs.detection.detector import Detection, Detector
+from libs.detection.detector_2d import Detection2D, Detector2D
 from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
-logger = setup_logging(name_appendix="Detector")
+logger = setup_logging(name_appendix="Detector2D")
 
 
 def _parse_args(argv: Sequence[str]) -> argparse.Namespace:
@@ -46,13 +46,13 @@ def _parse_args(argv: Sequence[str]) -> argparse.Namespace:
     return args
 
 
-def _handle_dataset_mode(args: argparse.Namespace, detector: Detector):
+def _handle_dataset_mode(args: argparse.Namespace, detector: Detector2D):
     dataset_manager = DatasetManager()
     cached_split = load_cached_split(args.cached_split_path)
     visualizer = Visualizer(
         config=load_config("visualizer"),
         annotation_label_mapper=dataset_manager.label_name_mapper,
-        detection_label_mapper=Detection.label_name_mapper,
+        detection_label_mapper=Detection2D.label_name_mapper,
     )
     for frame_id in cached_split.test_frame_ids:
         frame = dataset_manager.frame(frame_id)
@@ -60,12 +60,12 @@ def _handle_dataset_mode(args: argparse.Namespace, detector: Detector):
         visualizer.visualize_frame(frame)
 
 
-def _handle_direct_mode(args: argparse.Namespace, detector: Detector):
+def _handle_direct_mode(args: argparse.Namespace, detector: Detector2D):
     images = load_images(args.input_path)
 
     visualizer = Visualizer(
         config=load_config("visualizer"),
-        detection_label_mapper=Detection.label_name_mapper,
+        detection_label_mapper=Detection2D.label_name_mapper,
     )
     frames = [Frame(image=image, id=key) for key, image in images.items()]
     for frame in frames:

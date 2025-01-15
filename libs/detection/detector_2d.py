@@ -9,7 +9,7 @@ from typing import Any, List
 import numpy as np
 
 
-class Detection:
+class Detection2D:
     """A simple container for detection results."""
 
     def __init__(
@@ -30,7 +30,7 @@ class Detection:
 
     def __repr__(self):
         return (
-            f"Detection(label={self.label}, x={self.x}, y={self.y}, "
+            f"Detection2D(label={self.label}, x={self.x}, y={self.y}, "
             f"width={self.width}, height={self.height}, confidence={self.confidence})"
         )
 
@@ -47,7 +47,7 @@ class Detection:
         return label_names[label]
 
 
-class Detector:
+class Detector2D:
     """Abstract base class for any screw detection approach."""
 
     def __init__(self, configuration: dict):
@@ -58,6 +58,6 @@ class Detector:
         """Return the configuration dictionary."""
         return self._configuration
 
-    def detect(self, image: np.ndarray) -> List[Detection]:
+    def detect(self, image: np.ndarray) -> List[Detection2D]:
         """return a list of detections (bounding boxes, etc.)."""
         raise NotImplementedError("detect() must be implemented by subclass")

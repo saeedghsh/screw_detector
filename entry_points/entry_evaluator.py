@@ -14,7 +14,7 @@ from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.evaluator import Evaluator
 from libs.logger import setup_logging
 
-logger = setup_logging(name_appendix="Detector Evaluation")
+logger = setup_logging(name_appendix="Detector2D Evaluation")
 
 
 def main(_: Sequence[str]) -> int:

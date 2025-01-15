@@ -6,12 +6,12 @@ from typing import List
 import cv2
 import numpy as np
 
-from libs.detection.detector import Detection, Detector
+from libs.detection.detector_2d import Detection2D, Detector2D
 
 # pylint: disable=no-member
 
 
-class HoughCircleDetector(Detector):
+class HoughCircleDetector(Detector2D):
     """Detect circles of a certain radius range."""
 
     def _hough_circles_args(self) -> dict:
@@ -26,7 +26,7 @@ class HoughCircleDetector(Detector):
         kernel_size = self._configuration["gaussian_blur_kernel_size"]
         return cv2.GaussianBlur(gray, (kernel_size, kernel_size), 0)
 
-    def detect(self, image: np.ndarray) -> List[Detection]:
+    def detect(self, image: np.ndarray) -> List[Detection2D]:
         """Detect circles in the image using HoughCircles."""
         circles = cv2.HoughCircles(
             self._preprocess_image(image), cv2.HOUGH_GRADIENT, **self._hough_circles_args()
@@ -44,7 +44,7 @@ class HoughCircleDetector(Detector):
                 width = 2 * r
                 height = 2 * r
                 detections.append(
-                    Detection(
+                    Detection2D(
                         x=x_min,
                         y=y_min,
                         width=width,

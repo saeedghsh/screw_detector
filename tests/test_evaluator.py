@@ -1,14 +1,14 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
 from unittest import mock
 
-from libs.detection.detector import Detection
+from libs.detection.detector_2d import Detection2D
 from libs.evaluator import compute_distance, compute_iou, match_detections
 
 
 def test_compute_iou():
     mock_annotation = mock.MagicMock()
     mock_annotation.get_bbox.return_value = (0, 0, 10, 10)
-    detection = Detection(5, 5, 10, 10, label=0)
+    detection = Detection2D(5, 5, 10, 10, label=0)
     iou = compute_iou(mock_annotation, detection)
     assert 0.14 < iou < 0.15
 
@@ -21,8 +21,8 @@ def test_match_detections_all_matched():
     frame = mock.MagicMock()
     frame.annotations_count.return_value = 2
     frame.detections = [
-        Detection(x=0, y=0, width=10, height=10, label=0),
-        Detection(x=20, y=20, width=10, height=10, label=1),
+        Detection2D(x=0, y=0, width=10, height=10, label=0),
+        Detection2D(x=20, y=20, width=10, height=10, label=1),
     ]
     frame.annotations = [
         mock.MagicMock(label=0, get_bbox=mock.Mock(return_value=(0, 0, 10, 10))),
@@ -42,7 +42,7 @@ def test_match_detections_partial_match():
     frame = mock.MagicMock()
     frame.annotations_count.return_value = 2
     frame.detections = [
-        Detection(x=0, y=0, width=10, height=10, label=0),
+        Detection2D(x=0, y=0, width=10, height=10, label=0),
     ]
     frame.annotations = [
         mock.MagicMock(label=0, get_bbox=mock.Mock(return_value=(0, 0, 10, 10))),
@@ -63,7 +63,7 @@ def test_match_detections_no_match():
     frame = mock.MagicMock()
     frame.annotations_count.return_value = 2
     frame.detections = [
-        Detection(x=50, y=50, width=10, height=10, label=0),
+        Detection2D(x=50, y=50, width=10, height=10, label=0),
     ]
     frame.annotations = [
         mock.MagicMock(label=0, get_bbox=mock.Mock(return_value=(0, 0, 10, 10))),
@@ -97,7 +97,7 @@ def test_match_detections_empty_frame():
 def test_compute_distance():
     mock_annotation = mock.MagicMock()
     mock_annotation.get_bbox.return_value = (0, 0, 10, 10)
-    detection = Detection(5, 5, 10, 10, label=0)
+    detection = Detection2D(5, 5, 10, 10, label=0)
     distance = compute_distance(mock_annotation, detection)
     assert isinstance(distance, float)
     assert distance > 0
