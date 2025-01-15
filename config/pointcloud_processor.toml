@@ -1,0 +1,14 @@
+# preprocessor parameters
+use_z_distance_filter = true
+z_filter_threshold_min = 10 # z threshold (mm) for filtering out points
+z_filter_threshold_max = 600 # z threshold (mm) for filtering out points
+
+# downsampling parameters
+use_voxel_downsample = true
+voxel_size_mm = 2.0 # 10.0
+
+# DBSCAN parameters
+use_dbscan = true
+dbscan_eps = 20.0 
+dbscan_min_points = 100
+n_largest_clusters = 1 # how many cluster to keep

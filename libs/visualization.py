@@ -7,19 +7,19 @@ images using OpenCV.
 
 # pylint: disable=no-member
 
+import copy
 from types import SimpleNamespace
-from typing import Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, cast
 
 import cv2
 import numpy as np
 import open3d as o3d
 from datumaro.components.annotation import Annotations
 
-from libs.dataset.data_structure import BoundingBox, Frame
-from libs.detection.detector_2d import Detection2D
+from libs.dataset.data_structure import BoundingBox, Detection2D, Frame
 
 
-def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
+def _colors(idx: Optional[int], clip_to_unit: bool = False) -> Tuple[int, int, int]:
     """Return a list of colors for drawing annotations.
     If the index is not provided, return the last color in the list."""
     colors = {
@@ -33,7 +33,11 @@ def _colors(idx: Optional[int]) -> Tuple[int, int, int]:
         "Magenta": (255, 0, 255),  # Magenta
     }
     i = idx % len(colors) if idx is not None else -1
-    return list(colors.values())[i]
+    color: Tuple[int, int, int] = list(colors.values())[i]
+    if clip_to_unit:  # pragma: no cover
+        # Explicit cast to suppress mypy error
+        color = cast(Tuple[int, int, int], tuple(int(c / 255) for c in color))
+    return color
 
 
 def _text_font_args() -> dict:
@@ -65,6 +69,107 @@ def _draw_bbox(
         cv2.addWeighted(overlay, 0.3, annotated_image, 0.7, 0, annotated_image)
     else:
         cv2.rectangle(annotated_image, (x, y), (x + w, y + h), color, 2)
+
+
+def _draw_with_custom_camera_view(geometries: List[Any]):
+    """Draw geometries with a custom camera view."""
+    # Create visualizer
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    for geom in geometries:
+        vis.add_geometry(geom)
+    # Set custom view aligned with camera Z-axis
+    view_control = vis.get_view_control()
+    camera = view_control.convert_to_pinhole_camera_parameters()
+    # Set eye position slightly behind the origin, looking at [0, 0, 0], with Z-axis as up direction
+    camera.extrinsic = np.array(
+        [
+            [1, 0, 0, 0],  # X-axis
+            [0, 1, 0, 0],  # Y-axis
+            [0, 0, 1, +500],  # Z-axis, set 500 mm behind the origin
+            [0, 0, 0, 1],
+        ]
+    )
+    # Apply the new camera parameters
+    view_control.convert_from_pinhole_camera_parameters(camera)
+    # Run visualization
+    vis.run()
+    vis.destroy_window()
+
+
+def _custom_camera_frame() -> o3d.geometry.LineSet:
+    """Create a custom camera frame with X, Y, and Z axes."""
+    coord_frame_size = 1000.0  # mm
+    axis_points = [
+        [0, 0, 0],
+        [coord_frame_size, 0, 0],
+        [0, 0, 0],
+        [0, coord_frame_size, 0],
+        [0, 0, 0],
+        [0, 0, coord_frame_size],
+    ]
+    axis_lines = [[0, 1], [2, 3], [4, 5]]
+    axis_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    axis = o3d.geometry.LineSet()
+    axis.points = o3d.utility.Vector3dVector(axis_points)
+    axis.lines = o3d.utility.Vector2iVector(axis_lines)
+    axis.colors = o3d.utility.Vector3dVector(axis_colors)
+    return axis
+
+
+def _custom_coordinate_frame(
+    translation: np.ndarray, quaternion: np.ndarray
+) -> o3d.geometry.LineSet:
+    """Create a coordinate frame at the given pose (translation + orientation)
+    using a LineSet."""
+    coord_frame_size = 100.0  # mm
+    axis_points = [
+        [0, 0, 0],  # Origin
+        [coord_frame_size, 0, 0],  # X-axis endpoint
+        [0, coord_frame_size, 0],  # Y-axis endpoint
+        [0, 0, coord_frame_size],  # Z-axis endpoint
+    ]
+    axis_lines = [[0, 1], [0, 2], [0, 3]]  # Connect origin to each axis
+    axis_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]  # RGB for X, Y, Z
+    # Create a LineSet for the axes
+    coord_frame = o3d.geometry.LineSet()
+    coord_frame.points = o3d.utility.Vector3dVector(axis_points)
+    coord_frame.lines = o3d.utility.Vector2iVector(axis_lines)
+    coord_frame.colors = o3d.utility.Vector3dVector(axis_colors)
+    # Apply rotation and translation
+    rotation_matrix = o3d.geometry.get_rotation_matrix_from_quaternion(quaternion)
+    transformation = np.eye(4)
+    transformation[:3, :3] = rotation_matrix
+    transformation[:3, 3] = translation
+    coord_frame.transform(transformation)
+    return coord_frame
+
+
+def visualize_detections_3d(pointcloud: o3d.geometry.PointCloud, frame: Frame):
+    """Visualize the point cloud with:
+    * detection poses represented as coordinate frames
+    * detection bounding boxes
+    """
+    pcd_display = copy.deepcopy(pointcloud)
+    geometries = [pcd_display]
+    if frame.detections_3d is not None:
+        for i, detections_3d in enumerate(frame.detections_3d):
+            # draw bounding box
+            points_array = detections_3d.points_3d
+            if points_array is not None and len(points_array) != 0:
+                cloud = o3d.geometry.PointCloud()
+                cloud.points = o3d.utility.Vector3dVector(points_array)
+                bbox = cloud.get_axis_aligned_bounding_box()
+                bbox.color = _colors(i, clip_to_unit=True)
+                geometries.append(bbox)
+            # draw coordinate frame
+            pose = detections_3d.pose_3d
+            if pose is not None:
+                coord_frame = _custom_coordinate_frame(pose.translation, pose.quaternion)
+                geometries.append(coord_frame)
+    camera_frame = _custom_camera_frame()
+    geometries.append(camera_frame)
+    _draw_with_custom_camera_view(geometries)
 
 
 class Visualizer:  # pylint: disable=too-few-public-methods

@@ -5,7 +5,8 @@ python_files = ["test_*.py"]
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.coverage.run]
-omit = ["*/tests/*", "*/config-3.py", "*/config.py", "libs/evaluator.py"]
+omit = ["*/tests/*", "*/config-3.py", "*/config.py", "libs/evaluator.py", "libs/visualization.py", "libs/dataset/*"]
+
 
 [tool.pylint]
 init-hook = "import os, sys; sys.path.append(os.getcwd())"

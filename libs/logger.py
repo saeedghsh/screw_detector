@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 def setup_logging(
-    level: int = logging.ERROR, name_appendix: str = "", dir_path: str = "logs"
+    level: int = logging.INFO, name_appendix: str = "", dir_path: str = "logs"
 ) -> logging.Logger:
     """Set up and return a logger with both terminal and file output."""
     if not os.path.exists(dir_path):

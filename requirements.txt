@@ -9,3 +9,5 @@ opencv-python-headless
 open3d
 toml
 types-toml
+numpy
+scipy

@@ -1,6 +1,5 @@
 """Entry point for the detector module."""
 
-# pylint: disable=no-member, missing-function-docstring
 import argparse
 import os
 import sys
@@ -61,12 +60,11 @@ def _handle_dataset_mode(args: argparse.Namespace, detector: Detector2D):
 
 
 def _handle_direct_mode(args: argparse.Namespace, detector: Detector2D):
-    images = load_images(args.input_path)
-
     visualizer = Visualizer(
         config=load_config("visualizer"),
         detection_label_mapper=Detection2D.label_name_mapper,
     )
+    images = load_images(args.input_path)
     frames = [Frame(image=image, id=key) for key, image in images.items()]
     for frame in frames:
         detections = detector.detect(frame.image)
@@ -74,7 +72,7 @@ def _handle_direct_mode(args: argparse.Namespace, detector: Detector2D):
         visualizer.visualize_frame(frame)
 
 
-def main(argv: Sequence[str]) -> int:
+def main(argv: Sequence[str]) -> int:  # pylint: disable=missing-function-docstring
     args = _parse_args(argv)
     hough_circle_detector_config = load_config("hough_circle_detector")
     circle_detector = HoughCircleDetector(hough_circle_detector_config)

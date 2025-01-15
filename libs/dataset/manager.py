@@ -6,6 +6,7 @@ specific frames.
 """
 
 import functools
+import json
 import os
 
 # pylint: disable=no-member
@@ -56,6 +57,14 @@ def pointcloud_path(frame_id: str) -> str:  # pragma: no cover
     p = os.path.join(DATASET_PATH, f"{frame_id}.ply")
     if not os.path.isfile(p):
         raise FileNotFoundError(f"Point cloud file not found: {p}")
+    return p
+
+
+def camera_transform_path(frame_id: str) -> str:  # pragma: no cover
+    """Return the path to the camera transform file for the given frame ID."""
+    p = os.path.join(DATASET_PATH, f"{frame_id}.json")
+    if not os.path.isfile(p):
+        raise FileNotFoundError(f"Camera transform file not found: {p}")
     return p
 
 
@@ -154,6 +163,13 @@ class DatasetManager:
         """Return the point cloud for the given frame ID."""
         return o3d.io.read_point_cloud(pointcloud_path(frame_id))
 
+    @staticmethod
+    def _camera_transform(frame_id: str) -> np.ndarray:
+        """Return the camera transform for the given frame ID."""
+        with open(camera_transform_path(frame_id), "r", encoding="utf-8") as f:
+            matrix_data = json.load(f)
+        return np.array(matrix_data, dtype=np.float64)
+
     def _annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
         """Return the annotations for the given frame ID."""
         frame_idx = self._frame_ids[frame_id]
@@ -167,4 +183,5 @@ class DatasetManager:
             image=DatasetManager._image(frame_id),
             pointcloud=DatasetManager._pointcloud(frame_id),
             annotations=self._annotations(frame_id),
+            camera_transform=DatasetManager._camera_transform(frame_id),
         )

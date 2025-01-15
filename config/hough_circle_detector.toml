@@ -7,8 +7,8 @@
 # smallest_distance_bboxes_pairwise = int(smallest_distance_bboxes_pairwise * 0.95)
 dp = 1.2       # default
 minDist = 129  # smallest_distance_bboxes_pairwise
-param1 = 200   # default
-param2 = 40    # default
+param1 = 150   # default
+param2 = 30    # default
 minRadius = 27 # expected_circle_radius_min
 maxRadius = 62 # expected_circle_radius_max
 

@@ -9,9 +9,9 @@ import numpy as np
 from datumaro.components.annotation import Annotation
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 
-from libs.dataset.data_structure import Frame
+from libs.dataset.data_structure import Detection2D, Frame
 from libs.dataset.manager import DatasetManager
-from libs.detection.detector_2d import Detection2D, Detector2D
+from libs.detection.detector_2d import Detector2D
 
 
 def compute_iou(ann: Annotation, det: Detection2D) -> float:  # pylint: disable=too-many-locals
