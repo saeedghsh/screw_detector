@@ -1,0 +1,53 @@
+{
+    "precision": {
+        "screw_head": 0.0,
+        "screw_hole": 0.76
+    },
+    "recall": {
+        "screw_head": 0.0,
+        "screw_hole": 0.40425531914893614
+    },
+    "f1_score": {
+        "screw_head": 0.0,
+        "screw_hole": 0.5277777777777778
+    },
+    "mean_localization_error": 3.622841640747297,
+    "confusion_matrix": [
+        [
+            0,
+            6,
+            0
+        ],
+        [
+            28,
+            19,
+            0
+        ],
+        [
+            12,
+            0,
+            0
+        ]
+    ],
+    "total_false_positives": 6,
+    "detector_config": {
+        "_configuration": {
+            "dp": 1.2,
+            "minDist": 129,
+            "param1": 200,
+            "param2": 40,
+            "minRadius": 27,
+            "maxRadius": 62,
+            "gaussian_blur_kernel_size": 5,
+            "object_labels": [
+                "screw_head"
+            ]
+        }
+    },
+    "evaluator_config": {
+        "_config": {
+            "iou_threshold": 0.5,
+            "results_dir_path": "evaluation_logs"
+        }
+    }
+}
