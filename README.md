@@ -1,46 +1,90 @@
-[![black](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/formatting.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/formatting.yml)
-[![pylint](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pylint.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pylint.yml)
-[![mypy](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/type-check.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/type-check.yml)
-[![pytest](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest.yml)
-[![pytest-cov](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest-cov.yml/badge.svg?branch=master)](https://github.com/saeedghsh/circu_li_ion_case_study/actions/workflows/pytest-cov.yml)
+[![black](https://github.com/saeedghsh/screw_detector/actions/workflows/formatting.yml/badge.svg?branch=master)](https://github.com/saeedghsh/screw_detector/actions/workflows/formatting.yml)
+[![pylint](https://github.com/saeedghsh/screw_detector/actions/workflows/pylint.yml/badge.svg?branch=master)](https://github.com/saeedghsh/screw_detector/actions/workflows/pylint.yml)
+[![mypy](https://github.com/saeedghsh/screw_detector/actions/workflows/type-check.yml/badge.svg?branch=master)](https://github.com/saeedghsh/screw_detector/actions/workflows/type-check.yml)
+[![pytest](https://github.com/saeedghsh/screw_detector/actions/workflows/pytest.yml/badge.svg?branch=master)](https://github.com/saeedghsh/screw_detector/actions/workflows/pytest.yml)
+[![pytest-cov](https://github.com/saeedghsh/screw_detector/actions/workflows/pytest-cov.yml/badge.svg?branch=master)](https://github.com/saeedghsh/screw_detector/actions/workflows/pytest-cov.yml)
 
-# A Computer Vision Case Study for "Circu Li-ion"
+# Screw Detection
 
-## Assignment (Case Study) Description:
-* **The task**: Your task is to implement the system to detect screws on an EV
-battery pack to unscrew them with a robot as a first step of disassembly. You
-are provided a set of RGB images and pointclouds from the camera mounted on the
-robot. You will need to process RGB and / or 3D points to recover 3D pose
-(position and orientation) of every screw relative to the camera’s optical
-center.
-  * **Bonus points**: you are also given camera poses in robot coordinate system
-    for every camera snapshot. Can you return all unique screw 3D poses in robot
-    coordinate system?
+## Cheat Sheet
 
-* **Details**: Inside the zip archive you will find two sets of images taken for
-  two different battery packs. Every folder contains  data for a single camera
-  snapshot. Inside every folder there are 3 files – an image, a pointcloud in
-  `.ply` format, and a camera pose as a 4x4 transformation matrix stored as a
-  JSON file.
-  * Pointcloud coordinates and translations are in mm.
-  * Images and pointclouds are produced by a Zivid 2+ camera.
-  * You can choose how to define the screw origin and axes.
-  * If missing any other input, please make some reasonable assumptions
+### Usage examples
 
-* **What we expect**: We would like you to showcase your coding skills but also
-reasoning to choose the right method for the task, given limited resources – in
-your case time (and maybe data, depending on which method you choose). You are
-expected to deliver:
-  * A script that runs on a set of files and returns screw poses in a JSON
-    file[*]. Please use either Python, C++ or Rust, and make sure you’re happy
-    with the quality of your code and documentation. Although Python is
-    preferred, we definitely don’t want to see a Jupyter Notebook.  
-    [*] Bonus points would be given for the implementation of an HTTP server
-    hosting an API for detecting scr
-  * A short write-up of your approach, explaining the algorithm and any
-    trade-offs you’ve made (<1 page) and a visualization of the results on the
-    sample dataset. 
+**NOTE:** For "most" of these operation to work,
+`dataset/screw_detection_challenge/` with certain directory structure must be
+available. Those entry points with `direct` mode could potentially work on
+arbitrary paths (the directory structure should still be similar to the
+structure below).
+
+```bash
+.
+├── dataset
+│   └── screw_detection_challenge
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
+│       ├── battery_pack_1_annotations_datumaro.json
+│       ├── battery_pack_2_annotations_datumaro.json
+│       └── data_split_cache
+│           ├── 20250112T232216_0.2_split.json
+            ...
+```
+
+**visualizer:** Not very useful, just visualizes the date - it was starting point for integrating the visualizer into detector entry point for inspection during dev.
+```bash
+python -m entry_points.entry_visualizer
+```
+
+**Dataset split** for train and test. Every time it is run, a new data spit is performed and cached.
+```bash
+python -m entry_points.entry_dataset_splitter
+```
+
+**2D detector**: with visualization options, mostly for dev purposes.
+```bash
+python -m entry_points.entry_detector dataset
+python -m entry_points.entry_detector direct --input-path dataset/screw_detection_challenge/battery_pack_2
+```
+
+**Evaluation** of the specified detector over cached split data adn store the evaluation result under `evaluation_logs`.
+```bash
+python -m entry_points.entry_evaluator
+```
+
+**Pose estimation**: runs the whole pipeline of 2D detector following by 3D processing and 3D pose estimation.
+```bash
+python -m entry_points.entry_pose dataset
+python -m entry_points.entry_pose direct --input-path dataset/screw_detection_challenge/battery_pack_2
+```
+
+### Code quality tools
+
+Tests, coverage, linter, formatter, static type check, ...
+```bash
+$ black . --check
+$ isort . --check-only
+$ mypy . --explicit-package-bases
+$ pylint $(git ls-files '*.py')
+$ xvfb-run --auto-servernum pytest
+$ xvfb-run --auto-servernum pytest --cov=.
+$ xvfb-run --auto-servernum pytest --cov=. --cov-report html; firefox htmlcov/index.html
+$ coverage report -m # see which lines are missing coverage
+```
+
+**Profiling if needed**
+```bash
+python -m cProfile -o profile.out -m entry_points.dataset_visualizer
+tuna profile.out
+```
 
 # Note
-Portions of this code/project were developed with the assistance of ChatGPT (a
-product of OpenAI) and Copilot (A product of Microsoft).
+Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
