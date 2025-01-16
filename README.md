@@ -86,5 +86,29 @@ python -m cProfile -o profile.out -m entry_points.dataset_visualizer
 tuna profile.out
 ```
 
-# Note
+## TODOs and future work
+* Classifier based 2D detector
+  * [ ] consider cropping annotated areas and store a training set instead of
+    creating it on the fly every run! this way you run the split function once,
+    store frames ids of test and train set and crops of annotated regions plus
+    some TN examples. Test set can be fetched and evaluation can be on the fly.
+  * [ ] since the circle annotations are very tight, consider padding the
+    bounding boxes with 10% in each direction
+  * [ ] data augmentation
+  * [ ] negative sample selection, like considering content difference in
+    selected negative samples to make sure enough variance.
+  * [ ] Annotation tagging (system analysis and not just detector):
+    * annotate screws not on top surface and add tags `on_top_surface`
+    * partial visibility: 
+    * those in shadow
+* Parameter optimizer
+* Visualization
+  * [ ] draw annotations also on the point cloud
+  * [ ] `o3d` and `cv2` windows should be synchronized, so that I don't have to
+    close two windows every time
+  * [ ] add visualization of model prediction to visualization pipeline, 2D and
+    3D!
+  * [ ] replace visualizer with readily available anf off-the-shelf (e.g "rerun")
+
+## Note
 Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
