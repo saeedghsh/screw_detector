@@ -89,6 +89,11 @@ tuna profile.out
 
 ## TODOs and future work
 * [x] add direct mode option to visualizer
+* [ ] rename `entry_detector` to `entry_detector_2d`
+* [ ] `_colors` function is a mess
+  * the dict is not even used! use something like Enum for color name-idx
+    mapping. the optional idx does not have default value. opencv and open3d use
+    different order of RGB
 * [ ] Classifier based 2D detector
   * [ ] add train-validation split, keep test separate
   * [ ] consider cropping annotated areas and store a training set instead of
@@ -104,7 +109,6 @@ tuna profile.out
     * annotate screws not on top surface and add tags `on_top_surface`
     * partial visibility: 
     * those in shadow
-* Parameter optimizer
 * 3D:
   * [ ] template matching
   * [ ] plane detection
@@ -115,6 +119,7 @@ tuna profile.out
   * [ ] add visualization of model prediction to visualization pipeline, 2D and
     3D!
   * [ ] replace visualizer with readily available anf off-the-shelf (e.g "rerun")
+* Parameter optimizer
 
 ## Note
 Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
