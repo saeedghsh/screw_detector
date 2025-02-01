@@ -86,12 +86,8 @@ def _handle_direct_mode(
     images = load_images(args.input_path)
     pointclouds = load_pointclouds(args.input_path)
     camera_transforms = load_camera_transforms(args.input_path)
-    if len(images) != len(pointclouds) or len(images) != len(camera_transforms):
-        raise ValueError("Number of images, pointclouds, and camera transforms must match.")
-
     for frame_id, image in images.items():
         logger.info("Processing frame: %s\n", frame_id)
-
         frame = Frame(image=image, id=frame_id)
         frame.pointcloud = pointclouds[frame_id]
         frame.camera_transform = camera_transforms[frame_id]

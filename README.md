@@ -41,7 +41,8 @@ structure below).
 
 **visualizer:** Not very useful, just visualizes the date - it was starting point for integrating the visualizer into detector entry point for inspection during dev.
 ```bash
-python -m entry_points.entry_visualizer
+python -m entry_points.entry_visualizer dataset
+python -m entry_points.entry_visualizer direct --input-path dataset/screw_detection_challenge/battery_pack_2
 ```
 
 **Dataset split** for train and test. Every time it is run, a new data spit is performed and cached.
@@ -87,7 +88,8 @@ tuna profile.out
 ```
 
 ## TODOs and future work
-* Classifier based 2D detector
+* [x] add direct mode option to visualizer
+* [ ] Classifier based 2D detector
   * [ ] add train-validation split, keep test separate
   * [ ] consider cropping annotated areas and store a training set instead of
     creating it on the fly every run! this way you run the split function once,

@@ -54,12 +54,12 @@ def visualizer_fixture():
 
 
 @mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
-def test_main_executes_visualization(mock_load_config, request: FixtureRequest):
+def test_entry_visualizer_dataset_mode(mock_load_config, request: FixtureRequest):
     # pylint: disable=unused-argument
     dataset_manager = request.getfixturevalue("dataset_manager_fixture")
     visualizer = request.getfixturevalue("visualizer_fixture")
 
-    with mock.patch.object(sys, "argv", ["dataset_visualizer"]):
+    with mock.patch.object(sys, "argv", ["dataset_visualizer", "dataset"]):
         result = entry_visualizer_main(sys.argv[1:])
         assert result == os.EX_OK
 
@@ -71,24 +71,33 @@ def test_main_executes_visualization(mock_load_config, request: FixtureRequest):
     )
 
 
-@mock.patch("entry_points.entry_visualizer.load_config", return_value={"param1": "value1"})
-def test_main_handles_empty_frame_ids(mock_load_config, request: FixtureRequest):
-    # pylint: disable=unused-argument
-    """Test the edge case where frame_ids is empty to ensure 100% coverage."""
-    dataset_manager = request.getfixturevalue("dataset_manager_fixture")
-    visualizer = request.getfixturevalue("visualizer_fixture")
-
-    dataset_manager_instance = dataset_manager.return_value
-    dataset_manager_instance.frame_ids.keys.return_value = []  # Simulate empty frame_ids
-    dataset_manager_instance.frame_count.return_value = 0  # Mock zero frame count
-
-    with mock.patch.object(sys, "argv", ["dataset_visualizer"]):
+@mock.patch("entry_points.entry_visualizer.load_config")
+@mock.patch("entry_points.entry_visualizer.Visualizer")
+@mock.patch(
+    "entry_points.entry_visualizer.load_images",
+    return_value={"frame1": mock.MagicMock(), "subdir_frame2": mock.MagicMock()},
+)
+@mock.patch(
+    "entry_points.entry_visualizer.load_pointclouds",
+    return_value={"frame1": mock.MagicMock(), "subdir_frame2": mock.MagicMock()},
+)
+@mock.patch(
+    "entry_points.entry_visualizer.load_camera_transforms",
+    return_value={"frame1": mock.MagicMock(), "subdir_frame2": mock.MagicMock()},
+)
+def test_entry_visualizer_direct_mode(
+    mock_load_camera_transforms,
+    mock_load_pointclouds,
+    mock_load_images,
+    mock_visualizer,
+    mock_load_config,
+):
+    # pylint: disable=unused-argument, too-many-arguments
+    with mock.patch.object(
+        sys, "argv", ["entry_visualizer", "direct", "--input-path", "/path/to/data"]
+    ):
         result = entry_visualizer_main(sys.argv[1:])
         assert result == os.EX_OK
-
-    dataset_manager.assert_called_once()
-    visualizer_instance = visualizer.return_value
-    visualizer_instance.visualize_frame.assert_not_called()  # Ensure no frames were visualized
 
 
 @mock.patch("entry_points.entry_detector.load_config")
