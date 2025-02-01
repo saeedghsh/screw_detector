@@ -10,35 +10,6 @@
 
 ### Usage examples
 
-**NOTE:** For "most" of these operation to work,
-`dataset/screw_detection_challenge/` with certain directory structure must be
-available. Those entry points with `direct` mode could potentially work on
-arbitrary paths (the directory structure should still be similar to the
-structure below).
-
-```bash
-.
-├── dataset
-│   └── screw_detection_challenge
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
-│       ├── battery_pack_1_annotations_datumaro.json
-│       ├── battery_pack_2_annotations_datumaro.json
-│       └── data_split_cache
-│           ├── 20250112T232216_0.2_split.json
-            ...
-```
-
 **visualizer:** Not very useful, just visualizes the date - it was starting point for integrating the visualizer into detector entry point for inspection during dev.
 ```bash
 python -m entry_points.visualizer dataset
@@ -87,6 +58,37 @@ python -m cProfile -o profile.out -m entry_points.dataset_visualizer
 tuna profile.out
 ```
 
+### Dataset structure
+
+For "most" of these operation to work,
+`dataset/screw_detection_challenge/` with certain directory structure must be
+available. Those entry points with `direct` mode could potentially work on
+arbitrary paths (the directory structure should still be similar to the
+structure below).
+
+```bash
+.
+├── dataset
+│   └── screw_detection_challenge
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
+│       ├── battery_pack_1_annotations_datumaro.json
+│       ├── battery_pack_2_annotations_datumaro.json
+│       └── data_split_cache
+│           ├── 20250112T232216_0.2_split.json
+            ...
+```
+
 ## TODOs and future work
 * [x] add direct mode option to visualizer
 * [x] rename `entry_detector` to `entry_detector_2d`
@@ -121,6 +123,7 @@ tuna profile.out
     3D!
   * [ ] replace visualizer with readily available anf off-the-shelf (e.g "rerun")
 * [ ] Parameter optimizer
+* [ ] remove unnecessarily omitted test coverage from `pyproject.toml`
 
 ## Note
 Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
