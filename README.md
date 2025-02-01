@@ -91,8 +91,8 @@ tuna profile.out
 * [x] add direct mode option to visualizer
 * [x] rename `entry_detector` to `entry_detector_2d`
 * [x] remove `entry` from all entry points scripts
-* [ ] `_colors` function is a mess
-  * the dict is not even used! use something like Enum for color name-idx
+* [x] `_colors` function is a mess
+    the dict is not even used! use something like Enum for color name-idx
     mapping. the optional idx does not have default value. opencv and open3d use
     different order of RGB
 * [ ] Classifier based 2D detector

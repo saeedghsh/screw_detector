@@ -5,9 +5,10 @@ bounding boxes or mask contours on images, and it can display the annotated
 images using OpenCV.
 """
 
-# pylint: disable=no-member
-
 import copy
+
+# pylint: disable=no-member
+from enum import Enum
 from types import SimpleNamespace
 from typing import Any, Callable, List, Optional, Tuple, cast
 
@@ -19,25 +20,88 @@ from datumaro.components.annotation import Annotations
 from libs.dataset.data_structure import BoundingBox, Detection2D, Frame
 
 
-def _colors(idx: Optional[int], clip_to_unit: bool = False) -> Tuple[int, int, int]:
-    """Return a list of colors for drawing annotations.
-    If the index is not provided, return the last color in the list."""
-    colors = {
-        "Blue": (255, 0, 0),  # Blue
-        "Green": (0, 255, 0),  # Green
-        "Red": (0, 0, 255),  # Red
-        "Cyan": (255, 255, 0),  # Cyan
-        "Yellow": (0, 255, 255),  # Yellow
-        "Black": (0, 0, 0),  # Black
-        "White": (255, 255, 255),  # White
-        "Magenta": (255, 0, 255),  # Magenta
+class Color:
+    """Color utility class for drawing."""
+
+    class Names(Enum):  # pylint: disable=missing-class-docstring
+        RED = 0
+        GREEN = 1
+        BLUE = 2
+        YELLOW = 3
+        CYAN = 4
+        MAGENTA = 5
+        WHITE = 6
+        BLACK = 7
+
+    COLORS = {  # channel order: RGB
+        Names.RED.value: (255, 0, 0),
+        Names.GREEN.value: (0, 255, 0),
+        Names.BLUE.value: (0, 0, 255),
+        Names.YELLOW.value: (255, 255, 0),
+        Names.CYAN.value: (0, 255, 255),
+        Names.MAGENTA.value: (255, 0, 255),
+        Names.WHITE.value: (255, 255, 255),
+        Names.BLACK.value: (0, 0, 0),
     }
-    i = idx % len(colors) if idx is not None else -1
-    color: Tuple[int, int, int] = list(colors.values())[i]
-    if clip_to_unit:  # pragma: no cover
+
+    @staticmethod
+    def color(
+        color_idx: Optional[int] = None,
+        color_name: Optional[Names] = None,
+        channel_order: str = "rgb",
+        clip_to_unit: bool = False,
+    ) -> Tuple[int, int, int]:
+        """Return a color for drawing.
+
+        Args:
+            color_idx (Optional[int]): The index of the color in the COLORS dictionary.
+            color_name (Optional[Names]): The name of the color.
+            channel_order (str): The desired channel order (e.g., "rgb", "brg", "gbr").
+            clip_to_unit (bool): Whether to clip the color values to the range [0, 1].
+
+        Returns:
+            Tuple[int, int, int]: The reordered color.
+        """
+        i = -1
+        if color_idx is not None:
+            i = color_idx % len(Color.COLORS)
+        elif color_name is not None:
+            i = color_name.value
+        color = list(Color.COLORS.values())[i]
+
+        if clip_to_unit:  # pragma: no cover
+            # Explicit cast to suppress mypy error
+            color = cast(Tuple[int, int, int], tuple(int(c / 255) for c in color))
+
+        # Reorder the channels based on the provided order string
+        channel_indices = {ch: i for i, ch in enumerate("rgb")}
+        reordered_color = tuple(color[channel_indices[ch]] for ch in channel_order)
+
         # Explicit cast to suppress mypy error
-        color = cast(Tuple[int, int, int], tuple(int(c / 255) for c in color))
-    return color
+        return cast(Tuple[int, int, int], reordered_color)
+
+    @staticmethod
+    def color_cv2(
+        color_idx: Optional[int] = None, color_name: Optional[Names] = None
+    ) -> Tuple[int, int, int]:
+        """Return a color for drawing in the OpenCV format."""
+        return Color.color(color_idx, color_name, channel_order="bgr")
+
+    @staticmethod
+    def color_o3d(
+        color_idx: Optional[int] = None, color_name: Optional[Names] = None
+    ) -> Tuple[int, int, int]:
+        """Return a color for drawing in the Open3D format."""
+        return Color.color(color_idx, color_name, channel_order="rgb", clip_to_unit=True)
+
+    @staticmethod
+    def color_3d_axis() -> List[Tuple[int, int, int]]:
+        """Return a list of colors for the 3D axes."""
+        return [
+            Color.color_o3d(color_name=Color.Names.RED),
+            Color.color_o3d(color_name=Color.Names.GREEN),
+            Color.color_o3d(color_name=Color.Names.BLUE),
+        ]
 
 
 def _text_font_args() -> dict:
@@ -109,11 +173,10 @@ def _custom_camera_frame() -> o3d.geometry.LineSet:
         [0, 0, coord_frame_size],
     ]
     axis_lines = [[0, 1], [2, 3], [4, 5]]
-    axis_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     axis = o3d.geometry.LineSet()
     axis.points = o3d.utility.Vector3dVector(axis_points)
     axis.lines = o3d.utility.Vector2iVector(axis_lines)
-    axis.colors = o3d.utility.Vector3dVector(axis_colors)
+    axis.colors = o3d.utility.Vector3dVector(Color.color_3d_axis())
     return axis
 
 
@@ -143,7 +206,7 @@ def _camera_frustum():
         [3, 4],  # Near plane edges
         [4, 1],  # Near plane edges
     ]
-    colors = [_colors(idx=0, clip_to_unit=True)] * len(lines)
+    colors = [Color.color_o3d(color_name=Color.Names.RED)] * len(lines)
     pyramid.points = o3d.utility.Vector3dVector(points)
     pyramid.lines = o3d.utility.Vector2iVector(lines)
     pyramid.colors = o3d.utility.Vector3dVector(colors)
@@ -164,12 +227,11 @@ def _custom_coordinate_frame(
         [0, 0, coord_frame_size],  # Z-axis endpoint
     ]
     axis_lines = [[0, 1], [0, 2], [0, 3]]  # Connect origin to each axis
-    axis_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]  # RGB for X, Y, Z
     # Create a LineSet for the axes
     coord_frame = o3d.geometry.LineSet()
     coord_frame.points = o3d.utility.Vector3dVector(axis_points)
     coord_frame.lines = o3d.utility.Vector2iVector(axis_lines)
-    coord_frame.colors = o3d.utility.Vector3dVector(axis_colors)
+    coord_frame.colors = o3d.utility.Vector3dVector(Color.color_3d_axis())
     # Apply rotation and translation
     rotation_matrix = o3d.geometry.get_rotation_matrix_from_quaternion(quaternion)
     transformation = np.eye(4)
@@ -194,7 +256,7 @@ def visualize_detections_3d(pointcloud: o3d.geometry.PointCloud, frame: Frame):
                 cloud = o3d.geometry.PointCloud()
                 cloud.points = o3d.utility.Vector3dVector(points_array)
                 bbox = cloud.get_axis_aligned_bounding_box()
-                bbox.color = _colors(i, clip_to_unit=True)
+                bbox.color = Color.color_o3d(color_idx=i)
                 geometries.append(bbox)
             # draw coordinate frame
             pose = detections_3d.pose_3d
@@ -233,7 +295,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
     def _draw_annotations(self, annotated_image: np.ndarray, annotations: Annotations):
         """Draw annotations as filled rectangles"""
         for annotation in annotations:
-            color = _colors(annotation.label)
+            color = Color.color_cv2(color_idx=annotation.label)
             label_name = self._annotation_label_mapper(annotation.label)
             bbox = BoundingBox(*annotation.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=True)
@@ -243,7 +305,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
     def _draw_detections(self, annotated_image: np.ndarray, detections: List[Detection2D]):
         """Draw detections as empty rectangles."""
         for detection in detections:
-            color = _colors(detection.label)
+            color = Color.color_cv2(color_idx=detection.label)
             label_name = self._detection_label_mapper(detection.label)
             bbox = BoundingBox(*detection.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=False)
