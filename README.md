@@ -52,8 +52,8 @@ python -m entry_points.entry_dataset_splitter
 
 **2D detector**: with visualization options, mostly for dev purposes.
 ```bash
-python -m entry_points.entry_detector dataset
-python -m entry_points.entry_detector direct --input-path dataset/screw_detection_challenge/battery_pack_2
+python -m entry_points.entry_detector_2d dataset
+python -m entry_points.entry_detector_2d direct --input-path dataset/screw_detection_challenge/battery_pack_2
 ```
 
 **Evaluation** of the specified detector over cached split data adn store the evaluation result under `evaluation_logs`.
@@ -89,7 +89,8 @@ tuna profile.out
 
 ## TODOs and future work
 * [x] add direct mode option to visualizer
-* [ ] rename `entry_detector` to `entry_detector_2d`
+* [x] rename `entry_detector` to `entry_detector_2d`
+* [ ] remove `entry` from all entry points scripts
 * [ ] `_colors` function is a mess
   * the dict is not even used! use something like Enum for color name-idx
     mapping. the optional idx does not have default value. opencv and open3d use
@@ -119,7 +120,7 @@ tuna profile.out
   * [ ] add visualization of model prediction to visualization pipeline, 2D and
     3D!
   * [ ] replace visualizer with readily available anf off-the-shelf (e.g "rerun")
-* Parameter optimizer
+* [ ] Parameter optimizer
 
 ## Note
 Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).

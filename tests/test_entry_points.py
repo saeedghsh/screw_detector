@@ -9,7 +9,7 @@ from unittest import mock
 import pytest
 from pytest import FixtureRequest
 
-from entry_points.entry_detector import main as entry_detector_main
+from entry_points.entry_detector_2d import main as entry_detector_2d_main
 from entry_points.entry_evaluator import main as entry_evaluator_main
 from entry_points.entry_visualizer import main as entry_visualizer_main
 from libs.dataset.data_structure import Frame
@@ -100,12 +100,12 @@ def test_entry_visualizer_direct_mode(
         assert result == os.EX_OK
 
 
-@mock.patch("entry_points.entry_detector.load_config")
-@mock.patch("entry_points.entry_detector.load_cached_split")
-@mock.patch("entry_points.entry_detector.DatasetManager")
-@mock.patch("entry_points.entry_detector.Visualizer")
-@mock.patch("entry_points.entry_detector.HoughCircleDetector")
-def test_entry_detector_main(
+@mock.patch("entry_points.entry_detector_2d.load_config")
+@mock.patch("entry_points.entry_detector_2d.load_cached_split")
+@mock.patch("entry_points.entry_detector_2d.DatasetManager")
+@mock.patch("entry_points.entry_detector_2d.Visualizer")
+@mock.patch("entry_points.entry_detector_2d.HoughCircleDetector")
+def test_entry_detector_2d_main(
     mock_detector, mock_visualizer, mock_dataset_manager, mock_load_cached_split, mock_load_config
 ):
     # pylint: disable=unused-argument
@@ -117,30 +117,30 @@ def test_entry_detector_main(
     mock_dataset_manager.return_value.frame.return_value = mock_frame
 
     with mock.patch.object(
-        sys, "argv", ["entry_detector", "dataset", "--cached-split-path", "/path/to/split.json"]
+        sys, "argv", ["entry_detector_2d", "dataset", "--cached-split-path", "/path/to/split.json"]
     ):
-        result = entry_detector_main(sys.argv[1:])
+        result = entry_detector_2d_main(sys.argv[1:])
         assert result == os.EX_OK
     mock_load_cached_split.assert_called_once_with("/path/to/split.json")
     mock_dataset_manager.assert_called_once()
     mock_visualizer.return_value.visualize_frame.assert_called_once_with(mock_frame)
 
 
-@mock.patch("entry_points.entry_detector.load_config")
-@mock.patch("entry_points.entry_detector.Visualizer")
-@mock.patch("entry_points.entry_detector.HoughCircleDetector")
+@mock.patch("entry_points.entry_detector_2d.load_config")
+@mock.patch("entry_points.entry_detector_2d.Visualizer")
+@mock.patch("entry_points.entry_detector_2d.HoughCircleDetector")
 @mock.patch(
-    "entry_points.entry_detector.load_images",
+    "entry_points.entry_detector_2d.load_images",
     return_value={"image1": mock.MagicMock(), "subdir_image2": mock.MagicMock()},
 )
-def test_entry_detector_main_direct_mode(
+def test_entry_detector_2d_main_direct_mode(
     mock_load_images, mock_detector, mock_visualizer, mock_load_config
 ):
     # pylint: disable=unused-argument
     with mock.patch.object(
-        sys, "argv", ["entry_detector", "direct", "--input-path", "/path/to/images"]
+        sys, "argv", ["entry_detector_2d", "direct", "--input-path", "/path/to/images"]
     ):
-        result = entry_detector_main(sys.argv[1:])
+        result = entry_detector_2d_main(sys.argv[1:])
         assert result == os.EX_OK
 
 
