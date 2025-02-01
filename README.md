@@ -41,30 +41,30 @@ structure below).
 
 **visualizer:** Not very useful, just visualizes the date - it was starting point for integrating the visualizer into detector entry point for inspection during dev.
 ```bash
-python -m entry_points.entry_visualizer dataset
-python -m entry_points.entry_visualizer direct --input-path dataset/screw_detection_challenge/battery_pack_2
+python -m entry_points.visualizer dataset
+python -m entry_points.visualizer direct --input-path dataset/screw_detection_challenge/battery_pack_2
 ```
 
 **Dataset split** for train and test. Every time it is run, a new data spit is performed and cached.
 ```bash
-python -m entry_points.entry_dataset_splitter
+python -m entry_points.dataset_splitter
 ```
 
 **2D detector**: with visualization options, mostly for dev purposes.
 ```bash
-python -m entry_points.entry_detector_2d dataset
-python -m entry_points.entry_detector_2d direct --input-path dataset/screw_detection_challenge/battery_pack_2
+python -m entry_points.detector_2d dataset
+python -m entry_points.detector_2d direct --input-path dataset/screw_detection_challenge/battery_pack_2
 ```
 
 **Evaluation** of the specified detector over cached split data adn store the evaluation result under `evaluation_logs`.
 ```bash
-python -m entry_points.entry_evaluator
+python -m entry_points.evaluator
 ```
 
 **Pose estimation**: runs the whole pipeline of 2D detector following by 3D processing and 3D pose estimation.
 ```bash
-python -m entry_points.entry_pose dataset
-python -m entry_points.entry_pose direct --input-path dataset/screw_detection_challenge/battery_pack_2
+python -m entry_points.pose dataset
+python -m entry_points.pose direct --input-path dataset/screw_detection_challenge/battery_pack_2
 ```
 
 ### Code quality tools
@@ -90,7 +90,7 @@ tuna profile.out
 ## TODOs and future work
 * [x] add direct mode option to visualizer
 * [x] rename `entry_detector` to `entry_detector_2d`
-* [ ] remove `entry` from all entry points scripts
+* [x] remove `entry` from all entry points scripts
 * [ ] `_colors` function is a mess
   * the dict is not even used! use something like Enum for color name-idx
     mapping. the optional idx does not have default value. opencv and open3d use
