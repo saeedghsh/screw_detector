@@ -19,23 +19,23 @@ structure below).
 ```bash
 .
 ├── dataset
-│   └── screw_detection_challenge
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
+│   └── screw_detection_challenge
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
+│       ├── battery_pack_1
+│       │   ├── MAN_ImgCap_closer_zone_10
+│       │   │   ├── MAN_ImgCap_closer_zone_10.json
+│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
+│       │   │   └── MAN_ImgCap_closer_zone_10.png
+│       │   ...
 │       ├── battery_pack_1_annotations_datumaro.json
 │       ├── battery_pack_2_annotations_datumaro.json
-│       └── data_split_cache
-│           ├── 20250112T232216_0.2_split.json
+│       └── data_split_cache
+│           ├── 20250112T232216_0.2_split.json
             ...
 ```
 
@@ -88,6 +88,7 @@ tuna profile.out
 
 ## TODOs and future work
 * Classifier based 2D detector
+  * [ ] add train-validation split, keep test separate
   * [ ] consider cropping annotated areas and store a training set instead of
     creating it on the fly every run! this way you run the split function once,
     store frames ids of test and train set and crops of annotated regions plus
@@ -102,6 +103,9 @@ tuna profile.out
     * partial visibility: 
     * those in shadow
 * Parameter optimizer
+* 3D:
+  * [ ] template matching
+  * [ ] plane detection
 * Visualization
   * [ ] draw annotations also on the point cloud
   * [ ] `o3d` and `cv2` windows should be synchronized, so that I don't have to
