@@ -58,6 +58,14 @@ python -m cProfile -o profile.out -m entry_points.dataset_visualizer
 tuna profile.out
 ```
 
+### Ignoring changes in configuration files
+**Note:** this is done once and don't need to be repeated.
+```bash
+git update-index --assume-unchanged config/*.toml
+# To undo 
+git update-index --no-assume-unchanged config/*.toml
+```
+
 ### Dataset structure
 
 For "most" of these operation to work,
