@@ -117,6 +117,40 @@ def _custom_camera_frame() -> o3d.geometry.LineSet:
     return axis
 
 
+def _camera_frustum():
+    """Draw a pyramid for the camera"""
+    pyramid = o3d.geometry.LineSet()
+    near_plane = 300.0  # mm
+    fov = 90.0  # vertical in degrees
+    aspect_ratio = 16.0 / 9.0
+
+    half_height_near = near_plane * np.tan(np.radians(fov / 2))
+    half_width_near = half_height_near * aspect_ratio
+    points = [
+        [0, 0, 0],  # Camera origin
+        [-half_width_near, -half_height_near, near_plane],  # Near plane vertex
+        [half_width_near, -half_height_near, near_plane],  # Near plane vertex
+        [half_width_near, half_height_near, near_plane],  # Near plane vertex
+        [-half_width_near, half_height_near, near_plane],  # Near plane vertex
+    ]
+    lines = [
+        [0, 1],  # Camera origin to near plane
+        [0, 2],  # Camera origin to near plane
+        [0, 3],  # Camera origin to near plane
+        [0, 4],  # Camera origin to near plane
+        [1, 2],  # Near plane edges
+        [2, 3],  # Near plane edges
+        [3, 4],  # Near plane edges
+        [4, 1],  # Near plane edges
+    ]
+    colors = [_colors(idx=0, clip_to_unit=True)] * len(lines)
+    pyramid.points = o3d.utility.Vector3dVector(points)
+    pyramid.lines = o3d.utility.Vector2iVector(lines)
+    pyramid.colors = o3d.utility.Vector3dVector(colors)
+
+    return pyramid
+
+
 def _custom_coordinate_frame(
     translation: np.ndarray, quaternion: np.ndarray
 ) -> o3d.geometry.LineSet:
@@ -219,7 +253,10 @@ class Visualizer:  # pylint: disable=too-few-public-methods
     def _visualize_3d(self, frame: Frame):
         """Visualize a point cloud."""
         if self._config["show_output"]:
-            o3d.visualization.draw_geometries([frame.pointcloud], window_name="Point Cloud")
+            geometries = []
+            geometries.append(_camera_frustum())
+            geometries.append(frame.pointcloud)
+            o3d.visualization.draw_geometries(geometries, window_name="Point Cloud")
 
     def _visualize_2d(self, frame: Frame):
         """Visualize a frame with its image and annotations."""
