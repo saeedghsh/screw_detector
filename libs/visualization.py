@@ -45,62 +45,51 @@ class Color:
     }
 
     @staticmethod
-    def color(
-        color_idx: Optional[int] = None,
-        color_name: Optional[Names] = None,
-        channel_order: str = "rgb",
-        clip_to_unit: bool = False,
-    ) -> Tuple[int, int, int]:
-        """Return a color for drawing.
+    def clip_to_unit(color: Tuple[int, int, int]) -> Tuple[int, int, int]:
+        """Clip the color values to the range [0, 1]."""
+        color_unit = tuple(int(c / 255.0) for c in color)
+        return cast(Tuple[int, int, int], color_unit)  # Explicit cast to suppress mypy error
 
-        Args:
-            color_idx (Optional[int]): The index of the color in the COLORS dictionary.
-            color_name (Optional[Names]): The name of the color.
-            channel_order (str): The desired channel order (e.g., "rgb", "brg", "gbr").
-            clip_to_unit (bool): Whether to clip the color values to the range [0, 1].
-
-        Returns:
-            Tuple[int, int, int]: The reordered color.
-        """
-        i = -1
-        if color_idx is not None:
-            i = color_idx % len(Color.COLORS)
-        elif color_name is not None:
-            i = color_name.value
-        color = list(Color.COLORS.values())[i]
-
-        if clip_to_unit:  # pragma: no cover
-            # Explicit cast to suppress mypy error
-            color = cast(Tuple[int, int, int], tuple(int(c / 255) for c in color))
-
-        # Reorder the channels based on the provided order string
+    @staticmethod
+    def reorder_channels(color: Tuple[int, int, int], channel_order: str) -> Tuple[int, int, int]:
+        """Reorder the color channels according to the given order."""
         channel_indices = {ch: i for i, ch in enumerate("rgb")}
-        reordered_color = tuple(color[channel_indices[ch]] for ch in channel_order)
-
-        # Explicit cast to suppress mypy error
-        return cast(Tuple[int, int, int], reordered_color)
+        color_reordered = tuple(color[channel_indices[ch]] for ch in channel_order)
+        return cast(Tuple[int, int, int], color_reordered)  # Explicit cast to suppress mypy error
 
     @staticmethod
-    def color_cv2(
-        color_idx: Optional[int] = None, color_name: Optional[Names] = None
-    ) -> Tuple[int, int, int]:
+    def color(color_in: Optional[int | Names] = None) -> Tuple[int, int, int]:
+        """Return a color for drawing."""
+        if color_in is None:
+            return Color.COLORS[Color.Names.BLACK.value]
+        if not isinstance(color_in, int) and not isinstance(color_in, Color.Names):
+            raise ValueError(f"Invalid color type (should be [int|Color.Names]): {type(color_in)}")
+        if isinstance(color_in, Color.Names):
+            return Color.COLORS[color_in.value]
+        return Color.COLORS[color_in]
+
+    @staticmethod
+    def color_cv2(color_in: Optional[int | Names] = None) -> Tuple[int, int, int]:
         """Return a color for drawing in the OpenCV format."""
-        return Color.color(color_idx, color_name, channel_order="bgr")
+        color_out = Color.color(color_in)
+        color_out = Color.reorder_channels(color_out, channel_order="bgr")
+        return color_out
 
     @staticmethod
-    def color_o3d(
-        color_idx: Optional[int] = None, color_name: Optional[Names] = None
-    ) -> Tuple[int, int, int]:
+    def color_o3d(color_in: Optional[int | Names] = None) -> Tuple[int, int, int]:
         """Return a color for drawing in the Open3D format."""
-        return Color.color(color_idx, color_name, channel_order="rgb", clip_to_unit=True)
+        color_out = Color.color(color_in)
+        color_out = Color.reorder_channels(color_out, channel_order="rgb")
+        color_out = Color.clip_to_unit(color_out)
+        return color_out
 
     @staticmethod
     def color_3d_axis() -> List[Tuple[int, int, int]]:
         """Return a list of colors for the 3D axes."""
         return [
-            Color.color_o3d(color_name=Color.Names.RED),
-            Color.color_o3d(color_name=Color.Names.GREEN),
-            Color.color_o3d(color_name=Color.Names.BLUE),
+            Color.color_o3d(Color.Names.RED),
+            Color.color_o3d(Color.Names.GREEN),
+            Color.color_o3d(Color.Names.BLUE),
         ]
 
 
@@ -206,7 +195,7 @@ def _camera_frustum():
         [3, 4],  # Near plane edges
         [4, 1],  # Near plane edges
     ]
-    colors = [Color.color_o3d(color_name=Color.Names.RED)] * len(lines)
+    colors = [Color.color_o3d(Color.Names.RED)] * len(lines)
     pyramid.points = o3d.utility.Vector3dVector(points)
     pyramid.lines = o3d.utility.Vector2iVector(lines)
     pyramid.colors = o3d.utility.Vector3dVector(colors)
@@ -256,7 +245,7 @@ def visualize_detections_3d(pointcloud: o3d.geometry.PointCloud, frame: Frame):
                 cloud = o3d.geometry.PointCloud()
                 cloud.points = o3d.utility.Vector3dVector(points_array)
                 bbox = cloud.get_axis_aligned_bounding_box()
-                bbox.color = Color.color_o3d(color_idx=i)
+                bbox.color = Color.color_o3d(i)
                 geometries.append(bbox)
             # draw coordinate frame
             pose = detections_3d.pose_3d
@@ -295,7 +284,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
     def _draw_annotations(self, annotated_image: np.ndarray, annotations: Annotations):
         """Draw annotations as filled rectangles"""
         for annotation in annotations:
-            color = Color.color_cv2(color_idx=annotation.label)
+            color = Color.color_cv2(annotation.label)
             label_name = self._annotation_label_mapper(annotation.label)
             bbox = BoundingBox(*annotation.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=True)
@@ -305,7 +294,7 @@ class Visualizer:  # pylint: disable=too-few-public-methods
     def _draw_detections(self, annotated_image: np.ndarray, detections: List[Detection2D]):
         """Draw detections as empty rectangles."""
         for detection in detections:
-            color = Color.color_cv2(color_idx=detection.label)
+            color = Color.color_cv2(detection.label)
             label_name = self._detection_label_mapper(detection.label)
             bbox = BoundingBox(*detection.get_bbox()).resize(self._config["image_resize_factor"])
             _draw_bbox(annotated_image, bbox, color, filled=False)
