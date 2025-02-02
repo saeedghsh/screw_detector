@@ -8,7 +8,7 @@ from typing import Sequence
 
 from libs.config_reader import load_config
 from libs.dataset.manager import DatasetManager
-from libs.dataset.utils import cache_split
+from libs.dataset.split import cache_split
 from libs.logger import setup_logging
 
 logger = setup_logging(name_appendix="data-splitter")

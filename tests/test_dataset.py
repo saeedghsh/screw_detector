@@ -10,10 +10,11 @@ import numpy as np
 import pytest
 from datumaro.components.media import Image
 
+from libs.dataset.data_reader import load_images
 from libs.dataset.manager import DatasetManager
 
 # from libs.dataset.utils import cache_split, load_cached_split, load_images, split_train_test
-from libs.dataset.utils import load_cached_split, load_images
+from libs.dataset.split import load_cached_split
 
 
 @pytest.fixture

@@ -9,7 +9,7 @@ from typing import Sequence
 
 from libs.config_reader import load_config
 from libs.dataset.manager import DatasetManager
-from libs.dataset.utils import CACHE_DIR, load_cached_split
+from libs.dataset.split import CACHE_DIR, load_cached_split
 from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.evaluator import Evaluator
 from libs.logger import setup_logging

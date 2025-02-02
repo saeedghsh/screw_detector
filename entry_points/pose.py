@@ -6,14 +6,10 @@ import sys
 from typing import Sequence
 
 from libs.config_reader import load_config
+from libs.dataset.data_reader import load_camera_transforms, load_images, load_pointclouds
 from libs.dataset.data_structure import Frame
 from libs.dataset.manager import DATASET_PATH, DatasetManager
-from libs.dataset.utils import (
-    load_cached_split,
-    load_camera_transforms,
-    load_images,
-    load_pointclouds,
-)
+from libs.dataset.split import load_cached_split
 from libs.detection.detector_2d import Detector2D
 from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.logger import setup_logging

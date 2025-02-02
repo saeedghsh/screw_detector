@@ -8,9 +8,10 @@ import sys
 from typing import Sequence
 
 from libs.config_reader import load_config
+from libs.dataset.data_reader import load_camera_transforms, load_images, load_pointclouds
 from libs.dataset.data_structure import Frame
 from libs.dataset.manager import DatasetManager
-from libs.dataset.utils import dataset_stats, load_camera_transforms, load_images, load_pointclouds
+from libs.dataset.stats import dataset_stats
 from libs.logger import setup_logging
 from libs.visualization import Visualizer
 
