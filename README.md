@@ -76,25 +76,24 @@ structure below).
 
 ```bash
 .
-├── dataset
-│   └── screw_detection_challenge
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
-│       ├── battery_pack_1
-│       │   ├── MAN_ImgCap_closer_zone_10
-│       │   │   ├── MAN_ImgCap_closer_zone_10.json
-│       │   │   ├── MAN_ImgCap_closer_zone_10.ply
-│       │   │   └── MAN_ImgCap_closer_zone_10.png
-│       │   ...
-│       ├── battery_pack_1_annotations_datumaro.json
-│       ├── battery_pack_2_annotations_datumaro.json
-│       └── data_split_cache
-│           ├── 20250112T232216_0.2_split.json
-            ...
+└── dataset
+    └── screw_detection_challenge
+        ├── battery_pack_1
+        │   ├── MAN_ImgCap_closer_zone_10
+        │   │   ├── MAN_ImgCap_closer_zone_10.json
+        │   │   ├── MAN_ImgCap_closer_zone_10.ply
+        │   │   └── MAN_ImgCap_closer_zone_10.png
+        │   ...
+        ├── battery_pack_1
+        │   ├── MAN_ImgCap_closer_zone_10
+        │   │   ├── MAN_ImgCap_closer_zone_10.json
+        │   │   ├── MAN_ImgCap_closer_zone_10.ply
+        │   │   └── MAN_ImgCap_closer_zone_10.png
+        │   ...
+        ├── battery_pack_1_annotations_datumaro.json
+        ├── battery_pack_2_annotations_datumaro.json
+        └── data_split_cache
+            └── 20250203T021622.json
 ```
 
 ## TODOs and future work
