@@ -167,7 +167,7 @@ def test_entry_evaluator_main(
             json.dump({"test_frame_ids": ["mock/frame/1"]}, split_file)
 
         with (
-            mock.patch("entry_points.evaluator.CACHE_DIR", temp_cache_dir),
+            mock.patch("entry_points.evaluator.data_split_cache_path", return_value=temp_cache_dir),
             mock.patch.object(sys, "argv", ["entry_evaluator"]),
         ):
             result = entry_evaluator_main(sys.argv[1:])

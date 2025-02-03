@@ -9,7 +9,7 @@ from typing import Sequence
 
 from libs.config_reader import load_config
 from libs.dataset.manager import DatasetManager
-from libs.dataset.split import CACHE_DIR, load_cached_split
+from libs.dataset.split import data_split_cache_path, load_cached_split
 from libs.detection.hough_circle_detector import HoughCircleDetector
 from libs.evaluator import Evaluator
 from libs.logger import setup_logging
@@ -21,8 +21,8 @@ def main(_: Sequence[str]) -> int:
     dataset_manger = DatasetManager()
     circle_detector = HoughCircleDetector(load_config("hough_circle_detector"))
     evaluator = Evaluator(load_config("evaluator"))
-
-    cached_data_split_files = list(Path(CACHE_DIR).rglob("*.json"))
+    cache_dir_path = data_split_cache_path(ensure_exist=True)
+    cached_data_split_files = list(Path(cache_dir_path).rglob("*.json"))
     for f in cached_data_split_files:
         data_split_cache = load_cached_split(str(f))
         logger.info("Cached data split file: %s", f)
