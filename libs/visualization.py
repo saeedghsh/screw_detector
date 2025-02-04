@@ -66,7 +66,7 @@ class Color:
             raise ValueError(f"Invalid color type (should be [int|Color.Names]): {type(color_in)}")
         if isinstance(color_in, Color.Names):
             return Color.COLORS[color_in.value]
-        return Color.COLORS[color_in]
+        return Color.COLORS[color_in % len(Color.COLORS)]
 
     @staticmethod
     def color_cv2(color_in: Optional[int | Names] = None) -> Tuple[int, int, int]:
