@@ -146,3 +146,44 @@ def load_pointclouds(input_path: str) -> Dict[str, o3d.geometry.PointCloud]:
         raise FileNotFoundError(f"No point clouds found in '{input_path}'.")
 
     return pointclouds
+
+
+def _image_path(dataset_path: str, frame_id: str) -> str:
+    """Return the path to the image file for the given frame ID."""
+    p = os.path.join(dataset_path, f"{frame_id}.png")
+    if not os.path.isfile(p):
+        raise FileNotFoundError(f"Image file not found: {p}")
+    return p
+
+
+def read_image(dataset_path: str, frame_id: str) -> np.ndarray:
+    """Return the image for the given frame ID."""
+    return cv2.imread(_image_path(dataset_path, frame_id))
+
+
+def _pointcloud_path(dataset_path: str, frame_id: str) -> str:
+    """Return the path to the point cloud file for the given frame ID."""
+    p = os.path.join(dataset_path, f"{frame_id}.ply")
+    if not os.path.isfile(p):
+        raise FileNotFoundError(f"Point cloud file not found: {p}")
+    return p
+
+
+def read_pointcloud(dataset_path: str, frame_id: str) -> o3d.geometry.PointCloud:
+    """Return the point cloud for the given frame ID."""
+    return o3d.io.read_point_cloud(_pointcloud_path(dataset_path, frame_id))
+
+
+def _camera_transform_path(dataset_path: str, frame_id: str) -> str:
+    """Return the path to the camera transform file for the given frame ID."""
+    p = os.path.join(dataset_path, f"{frame_id}.json")
+    if not os.path.isfile(p):
+        raise FileNotFoundError(f"Camera transform file not found: {p}")
+    return p
+
+
+def read_camera_transform(dataset_path: str, frame_id: str) -> np.ndarray:
+    """Return the camera transform for the given frame ID."""
+    with open(_camera_transform_path(dataset_path, frame_id), "r", encoding="utf-8") as f:
+        matrix_data = json.load(f)
+    return np.array(matrix_data, dtype=np.float64)

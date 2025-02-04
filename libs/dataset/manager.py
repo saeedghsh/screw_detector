@@ -6,19 +6,16 @@ specific frames.
 """
 
 import functools
-import json
 import os
 
 # pylint: disable=no-member
 from typing import Dict, List
 
-import cv2
 import datumaro
-import numpy as np
-import open3d as o3d
 from datumaro.components.annotation import AnnotationType, LabelCategories
 from datumaro.components.media import Image
 
+from libs.dataset.data_reader import read_camera_transform, read_image, read_pointcloud
 from libs.dataset.data_structure import Frame
 from libs.path_utils import repo_root
 
@@ -42,30 +39,6 @@ def _filter_label_categories(
 def _annotations_file_path(battery_pack: int) -> str:
     """Return the path to the annotations file for the given battery pack."""
     return os.path.join(DATASET_PATH, f"battery_pack_{battery_pack}_annotations_datumaro.json")
-
-
-def image_path(frame_id: str) -> str:  # pragma: no cover
-    """Return the path to the image file for the given frame ID."""
-    p = os.path.join(DATASET_PATH, f"{frame_id}.png")
-    if not os.path.isfile(p):
-        raise FileNotFoundError(f"Image file not found: {p}")
-    return p
-
-
-def pointcloud_path(frame_id: str) -> str:  # pragma: no cover
-    """Return the path to the point cloud file for the given frame ID."""
-    p = os.path.join(DATASET_PATH, f"{frame_id}.ply")
-    if not os.path.isfile(p):
-        raise FileNotFoundError(f"Point cloud file not found: {p}")
-    return p
-
-
-def camera_transform_path(frame_id: str) -> str:  # pragma: no cover
-    """Return the path to the camera transform file for the given frame ID."""
-    p = os.path.join(DATASET_PATH, f"{frame_id}.json")
-    if not os.path.isfile(p):
-        raise FileNotFoundError(f"Camera transform file not found: {p}")
-    return p
 
 
 class DatasetManager:
@@ -153,23 +126,6 @@ class DatasetManager:
             return "UNKNOWN"
         return self._label_categories.items[annotation_label_idx].name
 
-    @staticmethod
-    def _image(frame_id: str) -> np.ndarray:
-        """Return the image for the given frame ID."""
-        return cv2.imread(image_path(frame_id))
-
-    @staticmethod
-    def _pointcloud(frame_id: str) -> o3d.geometry.PointCloud:
-        """Return the point cloud for the given frame ID."""
-        return o3d.io.read_point_cloud(pointcloud_path(frame_id))
-
-    @staticmethod
-    def _camera_transform(frame_id: str) -> np.ndarray:
-        """Return the camera transform for the given frame ID."""
-        with open(camera_transform_path(frame_id), "r", encoding="utf-8") as f:
-            matrix_data = json.load(f)
-        return np.array(matrix_data, dtype=np.float64)
-
     def _annotations(self, frame_id: str) -> datumaro.components.annotation.Annotations:
         """Return the annotations for the given frame ID."""
         frame_idx = self._frame_ids[frame_id]
@@ -180,8 +136,8 @@ class DatasetManager:
         """Return the frame with the given frame ID."""
         return Frame(
             id=frame_id,
-            image=DatasetManager._image(frame_id),
-            pointcloud=DatasetManager._pointcloud(frame_id),
+            image=read_image(DATASET_PATH, frame_id),
+            pointcloud=read_pointcloud(DATASET_PATH, frame_id),
+            camera_transform=read_camera_transform(DATASET_PATH, frame_id),
             annotations=self._annotations(frame_id),
-            camera_transform=DatasetManager._camera_transform(frame_id),
         )
