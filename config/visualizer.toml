@@ -1,6 +1,6 @@
-visualize_2d = false
+visualize_2d = true
 visualize_3d = true
 show_output = true
-save_output = false
+save_output = true
 image_resize_factor = 0.5
 output_dir = "output"
