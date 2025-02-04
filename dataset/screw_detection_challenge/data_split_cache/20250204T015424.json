@@ -1,0 +1,75 @@
+{
+    "test": [
+        "battery_pack_2/MAN_ImgCap_closer_zone_320/MAN_ImgCap_closer_zone_320",
+        "battery_pack_2/MAN_ImgCap_closer_zone_310/MAN_ImgCap_closer_zone_310",
+        "battery_pack_2/MAN_ImgCap_closer_zone_60/MAN_ImgCap_closer_zone_60",
+        "battery_pack_2/MAN_ImgCap_closer_zone_330/MAN_ImgCap_closer_zone_330",
+        "battery_pack_1/MAN_ImgCap_closer_zone_250/MAN_ImgCap_closer_zone_250",
+        "battery_pack_2/MAN_ImgCap_closer_zone_70/MAN_ImgCap_closer_zone_70",
+        "battery_pack_2/MAN_ImgCap_closer_zone_50/MAN_ImgCap_closer_zone_50",
+        "battery_pack_2/MAN_ImgCap_closer_zone_160/MAN_ImgCap_closer_zone_160"
+    ],
+    "train": [
+        "battery_pack_1/MAN_ImgCap_closer_zone_80/MAN_ImgCap_closer_zone_80",
+        "battery_pack_1/MAN_ImgCap_closer_zone_180/MAN_ImgCap_closer_zone_180",
+        "battery_pack_2/MAN_ImgCap_closer_zone_150/MAN_ImgCap_closer_zone_150",
+        "battery_pack_2/MAN_ImgCap_closer_zone_120/MAN_ImgCap_closer_zone_120",
+        "battery_pack_1/MAN_ImgCap_closer_zone_190/MAN_ImgCap_closer_zone_190",
+        "battery_pack_1/MAN_ImgCap_closer_zone_320/MAN_ImgCap_closer_zone_320",
+        "battery_pack_2/MAN_ImgCap_closer_zone_240/MAN_ImgCap_closer_zone_240",
+        "battery_pack_1/MAN_ImgCap_closer_zone_230/MAN_ImgCap_closer_zone_230",
+        "battery_pack_1/MAN_ImgCap_closer_zone_340/MAN_ImgCap_closer_zone_340",
+        "battery_pack_1/MAN_ImgCap_closer_zone_40/MAN_ImgCap_closer_zone_40",
+        "battery_pack_1/MAN_ImgCap_closer_zone_50/MAN_ImgCap_closer_zone_50",
+        "battery_pack_1/MAN_ImgCap_closer_zone_210/MAN_ImgCap_closer_zone_210",
+        "battery_pack_1/MAN_ImgCap_closer_zone_280/MAN_ImgCap_closer_zone_280",
+        "battery_pack_1/MAN_ImgCap_closer_zone_70/MAN_ImgCap_closer_zone_70",
+        "battery_pack_2/MAN_ImgCap_closer_zone_210/MAN_ImgCap_closer_zone_210",
+        "battery_pack_1/MAN_ImgCap_closer_zone_220/MAN_ImgCap_closer_zone_220",
+        "battery_pack_1/MAN_ImgCap_closer_zone_20/MAN_ImgCap_closer_zone_20",
+        "battery_pack_1/MAN_ImgCap_closer_zone_60/MAN_ImgCap_closer_zone_60",
+        "battery_pack_1/MAN_ImgCap_closer_zone_360/MAN_ImgCap_closer_zone_360",
+        "battery_pack_1/MAN_ImgCap_closer_zone_290/MAN_ImgCap_closer_zone_290",
+        "battery_pack_1/MAN_ImgCap_closer_zone_300/MAN_ImgCap_closer_zone_300",
+        "battery_pack_1/MAN_ImgCap_closer_zone_260/MAN_ImgCap_closer_zone_260",
+        "battery_pack_2/MAN_ImgCap_closer_zone_250/MAN_ImgCap_closer_zone_250",
+        "battery_pack_1/MAN_ImgCap_closer_zone_30/MAN_ImgCap_closer_zone_30",
+        "battery_pack_1/MAN_ImgCap_closer_zone_310/MAN_ImgCap_closer_zone_310",
+        "battery_pack_2/MAN_ImgCap_closer_zone_130/MAN_ImgCap_closer_zone_130",
+        "battery_pack_1/MAN_ImgCap_closer_zone_350/MAN_ImgCap_closer_zone_350",
+        "battery_pack_1/MAN_ImgCap_closer_zone_90/MAN_ImgCap_closer_zone_90",
+        "battery_pack_1/MAN_ImgCap_closer_zone_330/MAN_ImgCap_closer_zone_330",
+        "battery_pack_1/MAN_ImgCap_closer_zone_100/MAN_ImgCap_closer_zone_100",
+        "battery_pack_1/MAN_ImgCap_closer_zone_270/MAN_ImgCap_closer_zone_270",
+        "battery_pack_1/MAN_ImgCap_closer_zone_10/MAN_ImgCap_closer_zone_10",
+        "battery_pack_2/MAN_ImgCap_closer_zone_40/MAN_ImgCap_closer_zone_40",
+        "battery_pack_1/MAN_ImgCap_closer_zone_200/MAN_ImgCap_closer_zone_200",
+        "battery_pack_2/MAN_ImgCap_closer_zone_340/MAN_ImgCap_closer_zone_340",
+        "battery_pack_1/MAN_ImgCap_closer_zone_240/MAN_ImgCap_closer_zone_240",
+        "battery_pack_2/MAN_ImgCap_closer_zone_220/MAN_ImgCap_closer_zone_220",
+        "battery_pack_2/MAN_ImgCap_closer_zone_300/MAN_ImgCap_closer_zone_300"
+    ],
+    "desired_split_ratio": 0.2,
+    "stats": {
+        "count": {
+            "screw_hole": {
+                "test": 28,
+                "train": 52
+            },
+            "screw_head": {
+                "test": 36,
+                "train": 199
+            }
+        },
+        "ratio": {
+            "screw_hole": {
+                "test": 0.35,
+                "train": 0.65
+            },
+            "screw_head": {
+                "test": 0.15319148936170213,
+                "train": 0.8468085106382979
+            }
+        }
+    }
+}

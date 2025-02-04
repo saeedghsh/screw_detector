@@ -1,11 +1,15 @@
 """This module provides functions for splitting a dataset into subsets
 
-Can be used for different splits (client side responsibility):
-1. Split the whole dataset into train and test subsets set
-2. Split the train subset into training and validation subsets
-The split ratio applies to annotation counts, not frame counts.
+Can be used for different splits (client side responsibility): 1) Split the
+whole dataset into train and test subsets set, and 2) Split the train subset
+into training and validation subsets The split ratio applies to annotation
+counts, not frame counts.
+
+NOTE: the number of annotation labels is arbitrary and can vary. But the subsets
+into which data is split has to be exactly two.
 """
 
+import heapq
 import json
 import os
 import random
@@ -106,6 +110,37 @@ def _counts_labels(
     )
 
 
+def _choose_subset(
+    label: str,
+    subsets_counts: Dict[str, Counter[str]],
+    desired_split_count: Dict[str, int],
+    total_labels_counts: Counter[str],
+    subset_names: Tuple[str, str],
+) -> str:
+    """Determine which subset needs correction for the given label."""
+    subset1_deficit = desired_split_count[label] - subsets_counts[subset_names[0]].get(label, 0)
+    subset2_deficit = (total_labels_counts[label] - desired_split_count[label]) - subsets_counts[
+        subset_names[1]
+    ].get(label, 0)
+    return subset_names[0] if subset1_deficit > subset2_deficit else subset_names[1]
+
+
+def _build_heap(
+    annotation_labels: Set[str],
+    subsets_counts: Dict[str, Counter[str]],
+    desired_split_count: Dict[str, int],
+    subset_names: Tuple[str, str],
+) -> List[Tuple[int, str]]:
+    """Rebuild the Min-Heap based on per-label deviation."""
+    heap: List[Tuple[int, str]] = []
+    for label in annotation_labels:
+        deviation = abs(
+            subsets_counts[subset_names[0]].get(label, 0) - desired_split_count.get(label, 0)
+        )
+        heapq.heappush(heap, (-deviation, label))  # Max deviation first
+    return heap
+
+
 def split(
     dataset_manager: DatasetManager,
     frame_ids: List[str],
@@ -116,18 +151,21 @@ def split(
     """
     Return a split of the frames into two subsets based on the specified ratio.
 
-    NOTE: The split is frame-based, but the ratio applies to annotation counts.
-    It ensure that the ratio of annotations with the specified labels in each
-    subset is approximately equal to the given split ratio. Frames are randomly
-    assigned to subsets until the desired ratio for at least one labels is
-    reached.
+    The split is frame-based, but the ratio applies to annotation counts.
+    It ensures that the ratio of annotations with the specified labels in each
+    subset is approximately equal to the given split ratio.
+
+    ### **Implementation Notes**
+    - **Enhanced Min-Heap Balancing** prioritizes per-label ratio deviations.
+    - **Frames are assigned dynamically** based on the label needing correction the most.
+    - This ensures per-label ratios are closer to `desired_split_ratio`.
     """
     # Count annotations for each label across all frames
     count_result = _counts_labels(dataset_manager, frame_ids, annotation_labels)
     frames_labels_counts = count_result.frames_labels_counts
     total_labels_counts = count_result.total_labels_counts
 
-    # Desired number of annotations per label according to the split ratio
+    # Compute desired count per label
     desired_split_count = {
         label: int(count * desired_split_ratio) for label, count in total_labels_counts.items()
     }
@@ -138,15 +176,19 @@ def split(
     random.shuffle(frame_ids)
     subsets: Dict[str, list] = {n: [] for n in subset_names}
     subsets_counts: Dict[str, Counter[str]] = {n: Counter() for n in subset_names}
-    first_subset_full = False
+    heap = _build_heap(annotation_labels, subsets_counts, desired_split_count, subset_names)
     for frame_id in frame_ids:
-        subset_name = subset_names[0] if not first_subset_full else subset_names[1]
+        _, most_imbalanced_label = heapq.heappop(heap)
+        subset_name = _choose_subset(
+            most_imbalanced_label,
+            subsets_counts,
+            desired_split_count,
+            total_labels_counts,
+            subset_names,
+        )
         subsets[subset_name].append(frame_id)
         subsets_counts[subset_name].update(frames_labels_counts[frame_id])
-        first_subset_full = any(
-            subsets_counts[subset_names[0]].get(label, 0) > desired_split_count.get(label, 0)
-            for label in annotation_labels
-        )
+        heap = _build_heap(annotation_labels, subsets_counts, desired_split_count, subset_names)
 
     _verify_split(subsets_counts, annotation_labels, subset_names)
 
