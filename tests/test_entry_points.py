@@ -110,7 +110,7 @@ def test_entry_detector_2d_main(
 ):
     # pylint: disable=unused-argument
     mock_cached_split = mock.MagicMock()
-    mock_cached_split.test_frame_ids = ["mock_frame_1"]  # Ensure non-empty test_frame_ids
+    mock_cached_split.test = ["mock_frame_1"]  # Ensure non-empty test
     mock_load_cached_split.return_value = mock_cached_split
 
     mock_frame = mock.MagicMock()
@@ -155,7 +155,7 @@ def test_entry_evaluator_main(
     mock_load_config.side_effect = [{"param1": "value1"}, {"param2": "value2"}]
 
     mock_cached_split = mock.MagicMock()
-    mock_cached_split.test_frame_ids = ["mock/frame/1"]
+    mock_cached_split.test = ["mock/frame/1"]
     mock_load_cached_split.return_value = mock_cached_split
 
     mock_frame = mock.MagicMock()
@@ -164,7 +164,7 @@ def test_entry_evaluator_main(
     with tempfile.TemporaryDirectory() as temp_cache_dir:
         sample_split_path = f"{temp_cache_dir}/sample_split.json"
         with open(sample_split_path, "w", encoding="utf-8") as split_file:
-            json.dump({"test_frame_ids": ["mock/frame/1"]}, split_file)
+            json.dump({"test": ["mock/frame/1"]}, split_file)
 
         with (
             mock.patch("entry_points.evaluator.data_split_cache_path", return_value=temp_cache_dir),
@@ -182,5 +182,5 @@ def test_entry_evaluator_main(
     evaluator_instance.evaluate.assert_called_once_with(
         detector=mock_detector.return_value,
         dataset_manager=mock_dataset_manager.return_value,
-        test_frames=mock_cached_split.test_frame_ids,
+        test_frames=mock_cached_split.test,
     )

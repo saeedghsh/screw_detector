@@ -29,13 +29,16 @@ def main(_: Sequence[str]) -> int:
         evaluation_results = evaluator.evaluate(
             detector=circle_detector,
             dataset_manager=dataset_manger,
-            test_frames=data_split_cache.test_frame_ids,
+            test_frames=data_split_cache.test,
         )
-        logger.info(
-            "Precision: %.4f, Recall: %.4f",
-            evaluation_results["precision"],
-            evaluation_results["recall"],
-        )
+        for annotation_label in evaluation_results["precision"]:  # pragma: no cover
+            logger.info(
+                "Label: %s, Precision: %.2f, Recall: %.2f, F1 score: %.2f",
+                annotation_label,
+                evaluation_results["precision"][annotation_label],
+                evaluation_results["recall"][annotation_label],
+                evaluation_results["f1_score"][annotation_label],
+            )
 
     return os.EX_OK
 

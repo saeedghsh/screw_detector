@@ -28,7 +28,7 @@ def _parse_args(argv: Sequence[str]) -> argparse.Namespace:
     dataset_parser.add_argument(
         "--cached-split-path",
         type=str,
-        default=f"{DATASET_PATH}/data_split_cache/20250203T021622.json",
+        default=f"{DATASET_PATH}/data_split_cache/20250204T015442.json",
         help="Path to cached split.",
     )
     dataset_parser.set_defaults(func=_handle_dataset_mode)
@@ -59,7 +59,7 @@ def _handle_dataset_mode(
     logger.info("Loading cached split from: %s\n", args.cached_split_path)
     cached_split = load_cached_split(args.cached_split_path)
 
-    for frame_id in cached_split.test_frame_ids:
+    for frame_id in cached_split.test:
         logger.info("Processing frame: %s\n", frame_id)
         frame = dataset_manager.frame(frame_id)
         frame.detections = detector_2d.detect(frame.image)

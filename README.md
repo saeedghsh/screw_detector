@@ -93,7 +93,8 @@ structure below).
         ├── battery_pack_1_annotations_datumaro.json
         ├── battery_pack_2_annotations_datumaro.json
         └── data_split_cache
-            └── 20250203T021622.json
+            ├── 20250204T015442.json
+            ...
 ```
 
 ## TODOs and future work

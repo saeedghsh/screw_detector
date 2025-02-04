@@ -12,17 +12,17 @@ from libs.dataset.split import load_cached_split
 def test_load_cached_split_interface_correctness(tmp_path):
     split_file = tmp_path / "split.json"
     split_data = {
-        "train_frame_ids": ["frame_1", "frame_2"],
-        "test_frame_ids": ["frame_3"],
-        "split_ratio": 0.2,
+        "train": ["frame_1", "frame_2"],
+        "test": ["frame_3"],
+        "desired_split_ratio": 0.2,
         "timestamp": "20250113T123000",
     }
     with open(split_file, "w", encoding="utf-8") as file:
         json.dump(split_data, file)
     result = load_cached_split(str(split_file))
-    assert result.train_frame_ids == split_data["train_frame_ids"]
-    assert result.test_frame_ids == split_data["test_frame_ids"]
-    assert result.split_ratio == split_data["split_ratio"]
+    assert result.train == split_data["train"]
+    assert result.test == split_data["test"]
+    assert result.desired_split_ratio == split_data["desired_split_ratio"]
     assert result.timestamp == split_data["timestamp"]
 
 
