@@ -6,6 +6,9 @@
 
 # Screw Detection
 
+🚨 Disclaimer: Experimental & Buggy
+This project is an exercise, a work in progress and not intended for any particular use.
+
 ## Cheat Sheet
 
 ### Usage examples
@@ -133,5 +136,11 @@ structure below).
 * [ ] Parameter optimizer
 * [ ] remove unnecessarily omitted test coverage from `pyproject.toml`
 
-## Note
-Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
+## License
+```
+Copyright (C) Saeed Gholami Shahbandi
+```
+
+NOTE: Portions of this code/project were developed with the assistance of ChatGPT (a product of OpenAI) and Copilot (A product of Microsoft).
+
+Distributed with a GNU GENERAL PUBLIC LICENSE; see [LICENSE](https://github.com/saeedghsh/screw_detection/blob/master/LICENSE).
